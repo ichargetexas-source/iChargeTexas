@@ -1645,15 +1645,6 @@ export default function AdminScreen() {
         <View style={styles.quickActionsContainer}>
           <Text style={styles.quickActionsTitle}>Quick Actions</Text>
           <View style={styles.quickActionsGrid}>
-            {hasPermission("canManageUsers") && (
-              <TouchableOpacity
-                style={styles.quickActionCard}
-                onPress={handleOpenUserManagement}
-              >
-                <UsersIcon color={colors.primary} size={28} />
-                <Text style={styles.quickActionLabel}>Users</Text>
-              </TouchableOpacity>
-            )}
             <TouchableOpacity
               style={styles.quickActionCard}
               onPress={() => {
@@ -1701,6 +1692,82 @@ export default function AdminScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {hasPermission("canManageUsers") && (
+          <View style={styles.usersSection}>
+            <View style={styles.usersSectionHeader}>
+              <Text style={styles.usersSectionTitle}>System Users</Text>
+              <TouchableOpacity
+                style={styles.manageUsersButton}
+                onPress={handleOpenUserManagement}
+              >
+                <UserPlus color={colors.white} size={16} />
+                <Text style={styles.manageUsersButtonText}>Manage</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.usersScrollContent}
+            >
+              {availableStaff.length === 0 ? (
+                <View style={styles.noUsersContainer}>
+                  <UsersIcon color={colors.textTertiary} size={32} />
+                  <Text style={styles.noUsersText}>No users yet</Text>
+                </View>
+              ) : (
+                availableStaff.map((user) => (
+                  <TouchableOpacity
+                    key={user.id}
+                    style={styles.userCard}
+                    onPress={() => {
+                      Alert.alert(
+                        user.fullName,
+                        `Role: ${user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : 'Worker'}\nUsername: ${user.username}\nEmail: ${user.email || 'N/A'}\nPhone: ${user.phone || 'N/A'}\nStatus: ${user.isActive ? 'Active' : 'Inactive'}`,
+                        [
+                          { text: "OK" },
+                          {
+                            text: "Edit User",
+                            onPress: () => handleOpenUserManagement(),
+                          },
+                        ]
+                      );
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.userAvatar,
+                        user.role === 'super_admin'
+                          ? styles.superAdminAvatar
+                          : user.role === 'admin'
+                          ? styles.adminAvatar
+                          : styles.workerAvatar,
+                      ]}
+                    >
+                      <Text style={styles.userAvatarText}>
+                        {user.fullName.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={styles.userCardInfo}>
+                      <Text style={styles.userCardName} numberOfLines={1}>
+                        {user.fullName}
+                      </Text>
+                      <View style={styles.userRoleBadge}>
+                        <Text style={styles.userRoleText}>
+                          {user.role === 'super_admin'
+                            ? '⭐ Super Admin'
+                            : user.role === 'admin'
+                            ? '👨‍💼 Admin'
+                            : '🔧 Worker'}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              )}
+            </ScrollView>
+          </View>
+        )}
 
         <View style={styles.tabContainer}>
           <Text style={styles.requestsSectionTitle}>View Requests</Text>
@@ -4226,6 +4293,112 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700" as const,
     color: colors.white,
+  },
+  usersSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.border,
+  },
+  usersSectionHeader: {
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "center" as const,
+    marginBottom: 16,
+  },
+  usersSectionTitle: {
+    fontSize: 14,
+    fontWeight: "600" as const,
+    color: colors.textSecondary,
+    textTransform: "uppercase" as const,
+    letterSpacing: 1,
+  },
+  manageUsersButton: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+  },
+  manageUsersButtonText: {
+    fontSize: 12,
+    fontWeight: "700" as const,
+    color: colors.white,
+  },
+  usersScrollContent: {
+    gap: 12,
+    paddingRight: 16,
+  },
+  noUsersContainer: {
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    paddingVertical: 32,
+    paddingHorizontal: 48,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    gap: 8,
+  },
+  noUsersText: {
+    fontSize: 13,
+    color: colors.textTertiary,
+    fontWeight: "500" as const,
+  },
+  userCard: {
+    width: 140,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: "center" as const,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  userAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+  superAdminAvatar: {
+    backgroundColor: "#FF6B35",
+  },
+  adminAvatar: {
+    backgroundColor: colors.primary,
+  },
+  workerAvatar: {
+    backgroundColor: colors.success,
+  },
+  userAvatarText: {
+    fontSize: 24,
+    fontWeight: "700" as const,
+    color: colors.white,
+  },
+  userCardInfo: {
+    alignItems: "center" as const,
+    gap: 4,
+    width: "100%",
+  },
+  userCardName: {
+    fontSize: 14,
+    fontWeight: "600" as const,
+    color: colors.text,
+    textAlign: "center" as const,
+  },
+  userRoleBadge: {
+    backgroundColor: colors.surfaceLight,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  userRoleText: {
+    fontSize: 10,
+    fontWeight: "600" as const,
+    color: colors.textSecondary,
   },
   stripeApiSection: {
     marginTop: 32,
