@@ -1720,7 +1720,8 @@ export default function AdminScreen() {
               {availableStaff.length === 0 ? (
                 <View style={styles.noUsersContainer}>
                   <UsersIcon color={colors.textTertiary} size={32} />
-                  <Text style={styles.noUsersText}>No users yet</Text>
+                  <Text style={styles.noUsersText}>No staff members yet</Text>
+                  <Text style={styles.noUsersSubtext}>Create accounts in User Management</Text>
                 </View>
               ) : (
                 availableStaff.map((user) => (
@@ -4350,9 +4351,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   noUsersText: {
-    fontSize: 13,
+    fontSize: 14,
+    color: colors.text,
+    fontWeight: "600" as const,
+    textAlign: "center" as const,
+  },
+  noUsersSubtext: {
+    fontSize: 12,
     color: colors.textTertiary,
-    fontWeight: "500" as const,
+    fontWeight: "400" as const,
+    textAlign: "center" as const,
+    marginTop: 4,
   },
   userCard: {
     width: 140,
