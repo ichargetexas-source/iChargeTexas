@@ -1,0 +1,112 @@
+================================================================================
+APPLICATION BACKUP - BENCHMARK COPY
+================================================================================
+Created: ${new Date().toLocaleString()}
+Project: iChargeTexas (Roadside Assistance & EV Charging)
+
+This document contains the complete current state of your application.
+Save this file externally to preserve your benchmark.
+
+================================================================================
+PROJECT STRUCTURE
+================================================================================
+
+app/
+  _layout.tsx                    - Root layout with providers
+  +not-found.tsx                 - 404 screen
+  admin-login.tsx                - Admin authentication
+  (tabs)/
+    _layout.tsx                  - Tab navigation layout
+    index.tsx                    - Dashboard/Home screen
+    request.tsx                  - New request form
+    history.tsx                   - Request history
+    admin.tsx                     - Admin panel
+    notes.tsx                     - Messages/Notes screen
+
+constants/
+  colors.ts                      - Color palette
+  types.ts                       - TypeScript types
+  serviceData.ts                 - Service pricing & data
+  serviceContext.tsx             - Service state management
+  userContext.tsx                - User/admin state
+  languageContext.tsx            - Language switching
+  translations.ts                - English/Spanish translations
+  stripe.ts                      - Stripe integration
+
+Configuration Files:
+  package.json                   - Dependencies
+  app.json                       - Expo configuration
+  tsconfig.json                  - TypeScript configuration
+
+================================================================================
+KEY FEATURES IMPLEMENTED
+================================================================================
+
+✅ Multi-language support (English/Spanish)
+✅ Roadside assistance & EV charging requests
+✅ Real-time GPS location tracking
+✅ Service pricing with after-hours rates
+✅ Admin panel with full request management
+✅ Messaging system between users and admin
+✅ Stripe invoice creation
+✅ Push notifications
+✅ Request status management (pending, scheduled, completed, canceled)
+✅ Archive system for completed/canceled requests
+✅ Error tracking and reset functionality
+✅ Address editing for service locations
+✅ Multiple navigation options (address, grid coordinates, current location)
+✅ Auto-translation of requests to English for admin
+✅ Test invoice generation
+✅ Bulk operations (cancel all, delete messages)
+
+================================================================================
+CURRENT STATE SUMMARY
+================================================================================
+
+Total Files: 18 application files + 3 configuration files
+Last Modified: ${new Date().toLocaleString()}
+Language Support: English (en) & Spanish (es)
+Admin Password: Wowcows123!123!
+Service Types: Roadside Assistance & Scheduled Charging
+Pricing: Dynamic (standard + after-hours rates, 8.25% tax)
+
+================================================================================
+DEPENDENCIES & VERSIONS
+================================================================================
+
+Core:
+- expo: ^54.0.20
+- react: 19.1.0
+- react-native: 0.81.5
+- expo-router: ~6.0.13
+
+State Management:
+- @tanstack/react-query: ^5.83.0
+- @nkzw/create-context-hook: ^1.1.0
+
+Key Features:
+- expo-location: ~19.0.7
+- expo-notifications: ~0.32.12
+- @react-native-async-storage/async-storage: 2.2.0
+- @stripe/stripe-react-native: 0.50.3
+- lucide-react-native: ^0.475.0
+- expo-linear-gradient: ~15.0.7
+
+================================================================================
+BACKUP INSTRUCTIONS
+================================================================================
+
+To restore this version:
+1. Save this document in a safe location outside the project
+2. If you need to restore, reference the code in this file
+3. Copy the relevant sections back to your project files
+4. Run 'bun install' to ensure dependencies match
+
+To compare versions:
+1. Use this document as reference
+2. Diff your current files against the code shown here
+3. Identify what has changed since this backup
+
+================================================================================
+COMPLETE FILE CONTENTS BELOW
+================================================================================
