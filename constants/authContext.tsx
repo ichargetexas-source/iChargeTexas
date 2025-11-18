@@ -2,29 +2,11 @@ import createContextHook from "@nkzw/create-context-hook";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SystemUser, UserRole } from "./types";
+import { trpc } from "@/lib/trpc";
 
-const STORAGE_KEY_USERS = "@system_users";
 const STORAGE_KEY_CURRENT_USER = "@current_user";
 
-const DEFAULT_SUPER_ADMIN: SystemUser = {
-  id: "super_admin_001",
-  username: "superadmin",
-  password: "Wowcows123!123!",
-  role: "super_admin",
-  fullName: "Super Administrator",
-  email: "admin@ichargetexas.com",
-  isActive: true,
-  createdAt: new Date().toISOString(),
-  createdBy: "system",
-  permissions: {
-    canManageUsers: true,
-    canViewReports: true,
-    canHandleRequests: true,
-    canCreateInvoices: true,
-    canViewCustomerInfo: true,
-    canDeleteData: true,
-  },
-};
+
 
 export const [AuthContext, useAuth] = createContextHook(() => {
   const [currentUser, setCurrentUser] = useState<SystemUser | null>(null);
@@ -32,33 +14,21 @@ export const [AuthContext, useAuth] = createContextHook(() => {
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const getUsersQuery = trpc.auth.getUsers.useQuery();
+
   useEffect(() => {
     initializeAuth();
   }, []);
 
+  useEffect(() => {
+    if (getUsersQuery.data) {
+      setAllUsers(getUsersQuery.data);
+    }
+  }, [getUsersQuery.data]);
+
   const initializeAuth = async () => {
     try {
       console.log("[Auth] Initializing authentication system...");
-      
-      const storedUsers = await AsyncStorage.getItem(STORAGE_KEY_USERS);
-      let users: SystemUser[] = [];
-      
-      if (!storedUsers || storedUsers === "null" || storedUsers === "undefined") {
-        console.log("[Auth] No users found, creating default super admin");
-        users = [DEFAULT_SUPER_ADMIN];
-        await AsyncStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-      } else {
-        try {
-          users = JSON.parse(storedUsers);
-          console.log("[Auth] Loaded", users.length, "users from storage");
-        } catch (parseError) {
-          console.error("[Auth] Error parsing stored users, resetting to default:", parseError);
-          users = [DEFAULT_SUPER_ADMIN];
-          await AsyncStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-        }
-      }
-      
-      setAllUsers(users);
       
       const storedCurrentUser = await AsyncStorage.getItem(STORAGE_KEY_CURRENT_USER);
       if (storedCurrentUser && storedCurrentUser !== "null" && storedCurrentUser !== "undefined") {
@@ -80,52 +50,29 @@ export const [AuthContext, useAuth] = createContextHook(() => {
     }
   };
 
+  const loginMutation = trpc.auth.login.useMutation();
+
   const login = useCallback(async (username: string, password: string): Promise<{ success: boolean; message: string; user?: SystemUser }> => {
     try {
       console.log("[Auth] Login attempt for:", username);
       
-      const storedUsers = await AsyncStorage.getItem(STORAGE_KEY_USERS);
-      if (!storedUsers) {
-        console.log("[Auth] No users found in storage");
-        return { success: false, message: "Invalid username or password" };
+      const result = await loginMutation.mutateAsync({
+        username,
+        password,
+      });
+      
+      if (result.success && result.user) {
+        await AsyncStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(result.user));
+        setCurrentUser(result.user);
+        getUsersQuery.refetch();
       }
       
-      const users: SystemUser[] = JSON.parse(storedUsers);
-      console.log("[Auth] Found", users.length, "users in storage");
-      console.log("[Auth] Looking for username:", username);
-      
-      const user = users.find(u => u.username === username && u.password === password);
-      
-      if (!user) {
-        console.log("[Auth] Invalid credentials for:", username);
-        console.log("[Auth] Available usernames:", users.map(u => u.username));
-        return { success: false, message: "Invalid username or password" };
-      }
-      
-      if (!user.isActive) {
-        console.log("[Auth] User account is inactive:", username);
-        return { success: false, message: "This account has been deactivated" };
-      }
-      
-      const updatedUser: SystemUser = {
-        ...user,
-        lastLogin: new Date().toISOString(),
-      };
-      
-      const updatedUsers = users.map(u => u.id === user.id ? updatedUser : u);
-      await AsyncStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedUsers));
-      await AsyncStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(updatedUser));
-      
-      setAllUsers(updatedUsers);
-      setCurrentUser(updatedUser);
-      
-      console.log("[Auth] Login successful for:", username, "role:", user.role);
-      return { success: true, message: "Login successful", user: updatedUser };
+      return result;
     } catch (error) {
       console.error("[Auth] Error during login:", error);
       return { success: false, message: "An error occurred during login" };
     }
-  }, []);
+  }, [loginMutation, getUsersQuery]);
 
   const logout = useCallback(async () => {
     try {
@@ -137,6 +84,8 @@ export const [AuthContext, useAuth] = createContextHook(() => {
     }
   }, [currentUser]);
 
+  const createUserMutation = trpc.auth.createUser.useMutation();
+
   const createUser = useCallback(async (userData: Omit<SystemUser, "id" | "createdAt" | "createdBy">): Promise<{ success: boolean; message: string; user?: SystemUser }> => {
     try {
       if (!currentUser) {
@@ -147,29 +96,29 @@ export const [AuthContext, useAuth] = createContextHook(() => {
         return { success: false, message: "You don't have permission to create users" };
       }
       
-      const existingUser = allUsers.find(u => u.username === userData.username);
-      if (existingUser) {
-        return { success: false, message: "Username already exists" };
+      const result = await createUserMutation.mutateAsync({
+        username: userData.username,
+        password: userData.password,
+        fullName: userData.fullName,
+        email: userData.email,
+        phone: userData.phone,
+        role: userData.role,
+        isActive: userData.isActive,
+        permissions: userData.permissions,
+      });
+      
+      if (result.success) {
+        getUsersQuery.refetch();
       }
       
-      const newUser: SystemUser = {
-        ...userData,
-        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        createdAt: new Date().toISOString(),
-        createdBy: currentUser.id,
-      };
-      
-      const updatedUsers = [...allUsers, newUser];
-      await AsyncStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedUsers));
-      setAllUsers(updatedUsers);
-      
-      console.log("[Auth] User created:", newUser.username, "by:", currentUser.username);
-      return { success: true, message: "User created successfully", user: newUser };
+      return result;
     } catch (error) {
       console.error("[Auth] Error creating user:", error);
       return { success: false, message: "Failed to create user" };
     }
-  }, [currentUser, allUsers]);
+  }, [currentUser, createUserMutation, getUsersQuery]);
+
+  const updateUserMutation = trpc.auth.updateUser.useMutation();
 
   const updateUser = useCallback(async (userId: string, updates: Partial<SystemUser>): Promise<{ success: boolean; message: string }> => {
     try {
@@ -181,26 +130,28 @@ export const [AuthContext, useAuth] = createContextHook(() => {
         return { success: false, message: "You don't have permission to update other users" };
       }
       
-      const updatedUsers = allUsers.map(user => 
-        user.id === userId ? { ...user, ...updates } : user
-      );
+      const result = await updateUserMutation.mutateAsync({
+        userId,
+        updates,
+      });
       
-      await AsyncStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedUsers));
-      setAllUsers(updatedUsers);
-      
-      if (currentUser.id === userId) {
-        const updatedCurrentUser = { ...currentUser, ...updates };
-        await AsyncStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(updatedCurrentUser));
-        setCurrentUser(updatedCurrentUser);
+      if (result.success) {
+        if (currentUser.id === userId) {
+          const updatedCurrentUser = { ...currentUser, ...updates };
+          await AsyncStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(updatedCurrentUser));
+          setCurrentUser(updatedCurrentUser);
+        }
+        getUsersQuery.refetch();
       }
       
-      console.log("[Auth] User updated:", userId);
-      return { success: true, message: "User updated successfully" };
+      return result;
     } catch (error) {
       console.error("[Auth] Error updating user:", error);
       return { success: false, message: "Failed to update user" };
     }
-  }, [currentUser, allUsers]);
+  }, [currentUser, updateUserMutation, getUsersQuery]);
+
+  const deleteUserMutation = trpc.auth.deleteUser.useMutation();
 
   const deleteUser = useCallback(async (userId: string): Promise<{ success: boolean; message: string }> => {
     try {
@@ -212,30 +163,24 @@ export const [AuthContext, useAuth] = createContextHook(() => {
         return { success: false, message: "You don't have permission to delete users" };
       }
       
-      const userToDelete = allUsers.find(u => u.id === userId);
-      if (!userToDelete) {
-        return { success: false, message: "User not found" };
-      }
-      
-      if (userToDelete.role === "super_admin") {
-        return { success: false, message: "Cannot delete super admin account" };
-      }
-      
       if (userId === currentUser.id) {
         return { success: false, message: "Cannot delete your own account" };
       }
       
-      const updatedUsers = allUsers.filter(user => user.id !== userId);
-      await AsyncStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedUsers));
-      setAllUsers(updatedUsers);
+      const result = await deleteUserMutation.mutateAsync({
+        userId,
+      });
       
-      console.log("[Auth] User deleted:", userId);
-      return { success: true, message: "User deleted successfully" };
+      if (result.success) {
+        getUsersQuery.refetch();
+      }
+      
+      return result;
     } catch (error) {
       console.error("[Auth] Error deleting user:", error);
       return { success: false, message: "Failed to delete user" };
     }
-  }, [currentUser, allUsers]);
+  }, [currentUser, deleteUserMutation, getUsersQuery]);
 
   const getRoleDisplayName = useCallback((role: UserRole): string => {
     switch (role) {
