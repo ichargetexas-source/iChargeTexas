@@ -12,6 +12,7 @@ import { StatusBar } from "expo-status-bar";
 import colors from "@/constants/colors";
 import * as Notifications from "expo-notifications";
 import { Platform, LogBox } from "react-native";
+import { trpc, trpcClient } from "@/lib/trpc";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -99,20 +100,22 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthContext>
-        <LanguageContext>
-          <UserContext>
-            <ServiceContext>
-              <MessengerContext>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <RootLayoutNav />
-                </GestureHandlerRootView>
-              </MessengerContext>
-            </ServiceContext>
-          </UserContext>
-        </LanguageContext>
-      </AuthContext>
-    </QueryClientProvider>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <AuthContext>
+          <LanguageContext>
+            <UserContext>
+              <ServiceContext>
+                <MessengerContext>
+                  <GestureHandlerRootView style={{ flex: 1 }}>
+                    <RootLayoutNav />
+                  </GestureHandlerRootView>
+                </MessengerContext>
+              </ServiceContext>
+            </UserContext>
+          </LanguageContext>
+        </AuthContext>
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 }
