@@ -81,7 +81,7 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-  const notificationListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | undefined>(undefined);
 
   useEffect(() => {
     SplashScreen.hideAsync();
