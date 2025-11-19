@@ -1,5 +1,6 @@
 import { useService } from "@/constants/serviceContext";
 import { useUser } from "@/constants/userContext";
+import { useAuth } from "@/constants/authContext";
 
 import { useMessenger } from "@/constants/messengerContext";
 import { SystemUser } from "@/constants/types";
@@ -101,8 +102,24 @@ export default function AdminScreen() {
   const [assignmentMessengerRequest, setAssignmentMessengerRequest] = useState<ServiceRequest | null>(null);
   const [assignmentMessageText, setAssignmentMessageText] = useState<string>("");
 
+  const { logout } = useAuth();
+
   const handleLogout = async () => {
-    Alert.alert("Logout", "No authentication system enabled");
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            await logout();
+            router.replace("/login");
+          },
+        },
+      ]
+    );
   };
 
   const handleOpenUserManagement = () => {
