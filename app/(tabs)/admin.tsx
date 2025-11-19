@@ -69,7 +69,7 @@ export default function AdminScreen() {
   const { addNotification, messages: staffMessages } = useMessenger();
   const queryClient = useQueryClient();
   const { logout } = useUser();
-  const { currentUser, logout: authLogout, hasPermission } = useAuth();
+  const { currentUser, logout: authLogout, hasPermission, allUsers } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [adminTab, setAdminTab] = useState<AdminTab>("active");
@@ -656,35 +656,13 @@ export default function AdminScreen() {
   const [availableStaff, setAvailableStaff] = React.useState<SystemUser[]>([]);
 
   React.useEffect(() => {
-    loadAvailableStaff();
-  }, []);
-
-  const loadAvailableStaff = async () => {
-    try {
-      const stored = await AsyncStorage.getItem("@system_users");
-      if (stored && stored !== 'null' && stored !== 'undefined' && typeof stored === 'string') {
-        let users: SystemUser[] = [];
-        try {
-          users = JSON.parse(stored);
-        } catch (parseError) {
-          console.error("[Admin] Error parsing users JSON:", parseError, "Raw data:", stored.substring(0, 100));
-          return;
-        }
-        
-        if (!Array.isArray(users)) {
-          console.error("[Admin] Users data is not an array:", typeof users);
-          return;
-        }
-        
-        const staff = users.filter(u => 
-          u.isActive && (u.role === 'admin' || u.role === 'worker')
-        );
-        setAvailableStaff(staff);
-      }
-    } catch (error) {
-      console.error("[Admin] Error loading staff:", error);
+    if (allUsers.length > 0) {
+      const staff = allUsers.filter(u => 
+        u.isActive && (u.role === 'admin' || u.role === 'worker')
+      );
+      setAvailableStaff(staff);
     }
-  };
+  }, [allUsers]);
 
   const handleConfirmCancel = async () => {
     if (!selectedRequest || !cancelReason.trim()) {
