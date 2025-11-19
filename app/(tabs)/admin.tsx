@@ -69,7 +69,7 @@ export default function AdminScreen() {
   const { addNotification, messages: staffMessages } = useMessenger();
   const queryClient = useQueryClient();
   const { logout } = useUser();
-  const { currentUser, logout: authLogout, hasPermission, allUsers } = useAuth();
+  const { currentUser, logout: authLogout, hasPermission, allUsers = [] } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [adminTab, setAdminTab] = useState<AdminTab>("active");
