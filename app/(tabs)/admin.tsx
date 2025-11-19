@@ -656,6 +656,9 @@ export default function AdminScreen() {
   const [availableStaff, setAvailableStaff] = React.useState<SystemUser[]>([]);
 
   React.useEffect(() => {
+    if (allUsers) {
+      console.log("[Admin] Loaded users count:", allUsers.length);
+    }
     if (allUsers && allUsers.length > 0) {
       const staff = allUsers.filter((u: SystemUser) => 
         u.isActive && (u.role === 'admin' || u.role === 'worker')
