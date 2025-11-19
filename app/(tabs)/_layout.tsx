@@ -3,12 +3,9 @@ import { Home, Plus, History, Shield, MessageSquare, Users as UsersIcon, Message
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import colors from "@/constants/colors";
-import { useUser } from "@/constants/userContext";
-
 import { useService } from "@/constants/serviceContext";
 
 export default function TabLayout() {
-  const { isAdmin } = useUser();
   const { requests } = useService();
   
   const pendingRequests = requests.filter((r) => r.status === "pending");
@@ -72,7 +69,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <View>
               <MessageSquare color={color} size={size} />
-              {!isAdmin && unreadMessagesCount > 0 && (
+              {unreadMessagesCount > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>
                     {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
@@ -81,7 +78,6 @@ export default function TabLayout() {
               )}
             </View>
           ),
-          href: null,
         }}
       />
       <Tabs.Screen
@@ -90,7 +86,6 @@ export default function TabLayout() {
           title: "Admin",
           headerTitle: "Admin Tab",
           tabBarIcon: ({ color, size }) => <Shield color={color} size={size} />,
-          href: null,
         }}
       />
       <Tabs.Screen

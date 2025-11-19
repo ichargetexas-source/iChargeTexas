@@ -68,11 +68,6 @@ export default function AdminScreen() {
   const { requests, deleteRequest, updateRequestStatus, updateRequestNote, updateRequestReason, addMessage, errors, resetErrors, createTestInvoice, updateRequestAssignedStaff } = useService();
   const { addNotification, messages: staffMessages } = useMessenger();
   const queryClient = useQueryClient();
-  const { logout } = useUser();
-  const currentUser: SystemUser | null = null;
-  const authLogout = async () => {};
-  const hasPermission = (permission: string) => false;
-  const allUsers: SystemUser[] = [];
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [adminTab, setAdminTab] = useState<AdminTab>("active");
@@ -107,9 +102,7 @@ export default function AdminScreen() {
   const [assignmentMessageText, setAssignmentMessageText] = useState<string>("");
 
   const handleLogout = async () => {
-    await authLogout();
-    await logout();
-    router.replace("/admin-login");
+    Alert.alert("Logout", "No authentication system enabled");
   };
 
   const handleOpenUserManagement = () => {
@@ -657,18 +650,6 @@ export default function AdminScreen() {
   };
 
   const [availableStaff, setAvailableStaff] = React.useState<SystemUser[]>([]);
-
-  React.useEffect(() => {
-    if (allUsers) {
-      console.log("[Admin] Loaded users count:", allUsers.length);
-    }
-    if (allUsers && allUsers.length > 0) {
-      const staff = allUsers.filter((u: SystemUser) => 
-        u.isActive && (u.role === 'admin' || u.role === 'worker')
-      );
-      setAvailableStaff(staff);
-    }
-  }, [allUsers]);
 
   const handleConfirmCancel = async () => {
     if (!selectedRequest || !cancelReason.trim()) {
@@ -1620,11 +1601,9 @@ export default function AdminScreen() {
         <View style={styles.headerContainer}>
           <View style={styles.headerTitleSection}>
             <Text style={styles.adminTitle}>Admin Tab</Text>
-            {currentUser && (
-              <Text style={styles.adminSubtitle}>
-                {currentUser.fullName} • {currentUser.role}
-              </Text>
-            )}
+            <Text style={styles.adminSubtitle}>
+              Open access mode
+            </Text>
           </View>
         </View>
 
