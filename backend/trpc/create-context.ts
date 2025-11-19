@@ -19,4 +19,17 @@ const t = initTRPC.context<Context>().create();
 
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
-export const protectedProcedure = t.procedure;
+
+const isAuthenticated = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.userId) {
+    console.log("[tRPC] Unauthenticated request to protected procedure");
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      userId: ctx.userId,
+    },
+  });
+});
+
+export const protectedProcedure = t.procedure.use(isAuthenticated);

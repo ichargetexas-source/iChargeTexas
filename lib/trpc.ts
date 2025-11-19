@@ -1,6 +1,7 @@
 import { createTRPCReact } from "@trpc/react-query";
 import { httpLink, loggerLink } from "@trpc/client";
 import type { AppRouter } from "@/backend/trpc/app-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const trpc = createTRPCReact<AppRouter>();
 
@@ -23,6 +24,20 @@ export const trpcClient = trpc.createClient({
     }),
     httpLink({
       url: `${getBaseUrl()}/api/trpc`,
+      async headers() {
+        const storedUser = await AsyncStorage.getItem("@current_user");
+        if (storedUser && storedUser !== "null" && storedUser !== "undefined") {
+          try {
+            const user = JSON.parse(storedUser);
+            return {
+              authorization: `Bearer ${user.id}`,
+            };
+          } catch (e) {
+            console.error("[tRPC] Error parsing stored user:", e);
+          }
+        }
+        return {};
+      },
       async fetch(url, options) {
         const response = await fetch(url, options);
         
