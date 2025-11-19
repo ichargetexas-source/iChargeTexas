@@ -1,6 +1,5 @@
 import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { initTRPC } from "@trpc/server";
-import superjson from "superjson";
 import { kv } from "../storage";
 
 export const createContext = async (opts: FetchCreateContextFnOptions) => {
@@ -16,9 +15,7 @@ export const createContext = async (opts: FetchCreateContextFnOptions) => {
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
 
-const t = initTRPC.context<Context>().create({
-  transformer: superjson,
-});
+const t = initTRPC.context<Context>().create();
 
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
