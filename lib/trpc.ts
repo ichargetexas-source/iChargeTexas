@@ -1,5 +1,5 @@
 import { createTRPCReact } from "@trpc/react-query";
-import { httpLink } from "@trpc/client";
+import { httpLink, loggerLink } from "@trpc/client";
 import type { AppRouter } from "@/backend/trpc/app-router";
 
 export const trpc = createTRPCReact<AppRouter>();
@@ -16,8 +16,45 @@ const getBaseUrl = () => {
 
 export const trpcClient = trpc.createClient({
   links: [
+    loggerLink({
+      enabled: (opts) =>
+        process.env.NODE_ENV === "development" ||
+        (opts.direction === "down" && opts.result instanceof Error),
+    }),
     httpLink({
       url: `${getBaseUrl()}/api/trpc`,
+      async fetch(url, options) {
+        const response = await fetch(url, options);
+        
+        if (!response.ok) {
+          const text = await response.text();
+          console.error("[tRPC Client] HTTP Error:", {
+            status: response.status,
+            statusText: response.statusText,
+            body: text,
+            url,
+          });
+          
+          const errorResponse = new Response(
+            JSON.stringify({
+              error: {
+                message: text || `HTTP Error ${response.status}`,
+                code: "HTTP_ERROR",
+                data: {
+                  httpStatus: response.status,
+                },
+              },
+            }),
+            {
+              status: response.status,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+          return errorResponse;
+        }
+        
+        return response;
+      },
     }),
   ],
 });
