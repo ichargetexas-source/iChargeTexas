@@ -25,27 +25,29 @@ export default function AdminLoginScreen() {
   const { login } = useAuth();
 
   const handleLogin = async () => {
+    if (!username.trim() || !password.trim()) {
+      Alert.alert("Required", "Please enter both username and password");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      console.log("[AdminLogin] Bypassing authentication for testing");
+      console.log("[AdminLogin] Attempting login for:", username);
       
-      if (Platform.OS !== "web") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      const result = await login(username, password);
+      
+      if (result.success) {
+        if (Platform.OS !== "web") {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+        router.replace("/(tabs)/admin");
+      } else {
+        if (Platform.OS !== "web") {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        }
+        Alert.alert("Login Failed", result.message);
       }
-      
-      Alert.alert(
-        "Test Mode",
-        "Logging in without credentials for testing",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              router.replace("/(tabs)/admin");
-            },
-          },
-        ]
-      );
     } catch (error) {
       console.error("[AdminLogin] Error:", error);
       Alert.alert("Error", "An unexpected error occurred");
@@ -81,11 +83,38 @@ export default function AdminLoginScreen() {
           </View>
 
           <View style={styles.formContainer}>
-            <View style={styles.testModeNotice}>
-              <Text style={styles.testModeTitle}>🧪 TEST MODE</Text>
-              <Text style={styles.testModeText}>
-                Authentication is currently disabled. Just tap "Login" to access the admin panel.
-              </Text>
+            <View style={styles.inputContainer}>
+              <User color={colors.textTertiary} size={20} />
+              <TextInput
+                style={styles.input}
+                placeholder="Username"
+                placeholderTextColor={colors.textTertiary}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Lock color={colors.textTertiary} size={20} />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor={colors.textTertiary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                {showPassword ? (
+                  <EyeOff color={colors.textTertiary} size={20} />
+                ) : (
+                  <Eye color={colors.textTertiary} size={20} />
+                )}
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
@@ -97,7 +126,7 @@ export default function AdminLoginScreen() {
                 <ActivityIndicator color={colors.white} />
               ) : (
                 <>
-                  <Text style={styles.loginButtonText}>Login (Test Mode)</Text>
+                  <Text style={styles.loginButtonText}>Login</Text>
                   <Shield color={colors.white} size={20} />
                 </>
               )}
@@ -106,7 +135,10 @@ export default function AdminLoginScreen() {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Test mode enabled - No credentials required
+              Authorized personnel only
+            </Text>
+            <Text style={styles.defaultCredentials}>
+              (Try: Vernon / bacon)
             </Text>
           </View>
         </View>

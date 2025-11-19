@@ -21,6 +21,10 @@ app.onError((err, c) => {
 
 app.use(
   "/api/trpc/*",
+  async (c, next) => {
+    console.log(`[tRPC Request] ${c.req.method} ${c.req.url}`);
+    return next();
+  },
   trpcServer({
     router: appRouter,
     createContext,
