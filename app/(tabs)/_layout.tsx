@@ -1,22 +1,17 @@
-import { Tabs, useRouter } from "expo-router";
-import { Home, Plus, History, Shield, MessageSquare, Users as UsersIcon, LogIn, MessageCircle } from "lucide-react-native";
-import React, { useEffect } from "react";
+import { Tabs } from "expo-router";
+import { Home, Plus, History, Shield, MessageSquare, Users as UsersIcon, MessageCircle } from "lucide-react-native";
+import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import colors from "@/constants/colors";
 import { useUser } from "@/constants/userContext";
-import { useAuth } from "@/constants/authContext";
+
 import { useService } from "@/constants/serviceContext";
 
 export default function TabLayout() {
   const { isAdmin } = useUser();
-  const { isAuthenticated, currentUser } = useAuth();
   const { requests } = useService();
-  const router = useRouter();
-  
-
   
   const pendingRequests = requests.filter((r) => r.status === "pending");
-  const hasPendingRequests = pendingRequests.length > 0;
   
   const unreadMessagesCount = pendingRequests.reduce((count, req) => {
     const messages = req.messages || [];
@@ -68,15 +63,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <History color={color} size={size} />,
         }}
       />
-      <Tabs.Screen
-        name="login"
-        options={{
-          title: isAuthenticated ? (currentUser?.role || "Admin") : "Staff",
-          headerTitle: isAuthenticated ? "Admin Dashboard" : "Business Login",
-          tabBarIcon: ({ color, size }) => 
-            isAuthenticated ? <Shield color={color} size={size} /> : <LogIn color={color} size={size} />,
-        }}
-      />
+
       <Tabs.Screen
         name="notes"
         options={{

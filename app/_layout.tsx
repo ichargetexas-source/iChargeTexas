@@ -5,11 +5,9 @@ import React, { useEffect, useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ServiceContext } from "@/constants/serviceContext";
 import { UserContext } from "@/constants/userContext";
-import { AuthContext } from "@/constants/authContext";
 import { LanguageContext } from "@/constants/languageContext";
 import { MessengerContext } from "@/constants/messengerContext";
 import { StatusBar } from "expo-status-bar";
-import colors from "@/constants/colors";
 import * as Notifications from "expo-notifications";
 import { Platform, LogBox } from "react-native";
 import { trpc, trpcClient } from "@/lib/trpc";
@@ -51,16 +49,7 @@ function RootLayoutNav() {
       <StatusBar style="light" />
       <Stack screenOptions={{ headerBackTitle: "Back" }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen 
-          name="admin-login" 
-          options={{ 
-            title: "Staff Login",
-            headerStyle: {
-              backgroundColor: colors.background,
-            },
-            headerTintColor: colors.text,
-          }} 
-        />
+
         <Stack.Screen 
           name="user-management" 
           options={{ 
@@ -102,19 +91,17 @@ export default function RootLayout() {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <AuthContext>
-          <LanguageContext>
-            <UserContext>
-              <ServiceContext>
-                <MessengerContext>
-                  <GestureHandlerRootView style={{ flex: 1 }}>
-                    <RootLayoutNav />
-                  </GestureHandlerRootView>
-                </MessengerContext>
-              </ServiceContext>
-            </UserContext>
-          </LanguageContext>
-        </AuthContext>
+        <LanguageContext>
+          <UserContext>
+            <ServiceContext>
+              <MessengerContext>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <RootLayoutNav />
+                </GestureHandlerRootView>
+              </MessengerContext>
+            </ServiceContext>
+          </UserContext>
+        </LanguageContext>
       </QueryClientProvider>
     </trpc.Provider>
   );
