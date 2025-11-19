@@ -33,8 +33,8 @@ export default function AssignmentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { requests, addMessage, updateRequestAssignedStaff, updateRequestStatus } = useService();
-  const currentUser = null;
-  const allUsers: any[] = [];
+  const currentUser = null as SystemUser | null;
+  const allUsers: SystemUser[] = [];
   const { addNotification } = useMessenger();
   
   const [messageText, setMessageText] = useState<string>("");

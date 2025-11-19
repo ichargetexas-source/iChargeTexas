@@ -13,6 +13,7 @@ import {
 import { Image } from "expo-image";
 import { useMessenger } from "@/constants/messengerContext";
 import colors from "@/constants/colors";
+import { SystemUser } from "@/constants/types";
 import { Send, MessageCircle, Bell, Shield, Wrench, Crown, Camera, Image as ImageIcon, X, ArrowLeft } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -20,9 +21,9 @@ import { Stack, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 
 export default function MessengerScreen() {
-  const currentUser = null;
+  const currentUser = null as SystemUser | null;
   const isAuthenticated = false;
-  const allUsers: any[] = [];
+  const allUsers: SystemUser[] = [];
   const {
     messages,
     notifications,
@@ -41,7 +42,7 @@ export default function MessengerScreen() {
   const [mentionSearchQuery, setMentionSearchQuery] = useState("");
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
 
-  const staffMembers = useMemo(() => {
+  const staffMembers = useMemo<SystemUser[]>(() => {
     return [];
   }, []);
 

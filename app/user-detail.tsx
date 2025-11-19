@@ -1,6 +1,6 @@
 
 import colors from "@/constants/colors";
-import { UserRole } from "@/constants/types";
+import { SystemUser, UserRole } from "@/constants/types";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
@@ -35,11 +35,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function UserDetailScreen() {
   const { id } = useLocalSearchParams();
-  const allUsers: any[] = [];
-  const updateUser = async () => ({ success: false, message: "Auth disabled" });
-  const deleteUser = async () => ({ success: false, message: "Auth disabled" });
-  const getRoleDisplayName = (role: any) => role;
-  const currentUser = null;
+  const allUsers: SystemUser[] = [];
+  const updateUser = async (userId: string, data: any) => ({ success: false, message: "Auth disabled" });
+  const deleteUser = async (userId: string) => ({ success: false, message: "Auth disabled" });
+  const getRoleDisplayName = (role: UserRole) => role;
+  const currentUser = null as SystemUser | null;
   const insets = useSafeAreaInsets();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

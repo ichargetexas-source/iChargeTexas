@@ -32,7 +32,7 @@ export default function PhotoGalleryModal({
   onRemovePhoto,
 }: PhotoGalleryModalProps) {
   const insets = useSafeAreaInsets();
-  const currentUser = null;
+  const currentUser = null as import('./types').SystemUser | null;
   const [isUploading, setIsUploading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 

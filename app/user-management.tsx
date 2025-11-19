@@ -40,11 +40,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 type ModalType = "create" | "edit" | "view" | "permissions" | null;
 
 export default function UserManagementScreen() {
-  const allUsers: any[] = [];
-  const currentUser = null;
-  const createUser = async () => ({ success: false, message: "Auth disabled" });
-  const updateUser = async () => ({ success: false, message: "Auth disabled" });
-  const getRoleDisplayName = (role: any) => role;
+  const allUsers: SystemUser[] = [];
+  const currentUser = null as SystemUser | null;
+  const createUser = async (data: any) => ({ success: false, message: "Auth disabled" });
+  const updateUser = async (userId: string, data: any) => ({ success: false, message: "Auth disabled" });
+  const getRoleDisplayName = (role: UserRole) => role;
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<ModalType>(null);
