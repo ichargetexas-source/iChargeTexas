@@ -8,6 +8,12 @@ const app = new Hono();
 
 app.use("*", cors());
 
+// Log all incoming requests for debugging
+app.use("*", async (c, next) => {
+  console.log(`[Hono Incoming] ${c.req.method} ${c.req.url}`);
+  await next();
+});
+
 app.onError((err, c) => {
   console.error("[Hono Error]", err);
   return c.json(
@@ -19,18 +25,33 @@ app.onError((err, c) => {
   );
 });
 
+// Support standard path with /api prefix
 app.use(
   "/api/trpc/*",
-  async (c, next) => {
-    console.log(`[tRPC Request] ${c.req.method} ${c.req.url}`);
-    return next();
-  },
   trpcServer({
     router: appRouter,
     createContext,
     endpoint: "/api/trpc",
     onError({ error, type, path, input, ctx, req }) {
-      console.error("[tRPC Error]", {
+      console.error("[tRPC Error /api/trpc]", {
+        type,
+        path,
+        error: error.message,
+        code: error.code,
+      });
+    },
+  })
+);
+
+// Support path without /api prefix (in case host strips it)
+app.use(
+  "/trpc/*",
+  trpcServer({
+    router: appRouter,
+    createContext,
+    endpoint: "/trpc",
+    onError({ error, type, path, input, ctx, req }) {
+      console.error("[tRPC Error /trpc]", {
         type,
         path,
         error: error.message,
@@ -45,6 +66,7 @@ app.get("/", (c) => {
 });
 
 app.notFound((c) => {
+  console.log(`[Hono 404] Route not found: ${c.req.method} ${c.req.url}`);
   return c.json({ error: "Not found", success: false }, 404);
 });
 
