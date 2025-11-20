@@ -7,7 +7,7 @@ import { ServiceContext } from "@/constants/serviceContext";
 import { UserContext } from "@/constants/userContext";
 import { LanguageContext } from "@/constants/languageContext";
 import { MessengerContext } from "@/constants/messengerContext";
-import { AuthContext, useAuth } from "@/constants/authContext";
+import { AuthContext } from "@/constants/authContext";
 import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
 import { Platform, LogBox } from "react-native";
@@ -23,15 +23,6 @@ const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        router.replace("/login");
-      }
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     if (Platform.OS !== 'web') {

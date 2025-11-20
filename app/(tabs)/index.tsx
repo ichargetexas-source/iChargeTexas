@@ -3,6 +3,7 @@ import { useLanguage } from "@/constants/languageContext";
 import { translations } from "@/constants/translations";
 import colors from "@/constants/colors";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/constants/authContext";
 import * as Location from "expo-location";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
@@ -35,6 +36,7 @@ import {
 export default function HomeScreen() {
   const router = useRouter();
   const { requests } = useService();
+  const { isAuthenticated, user } = useAuth();
 
   const { language, changeLanguage } = useLanguage();
   const t = translations[language] || translations.en;
@@ -403,6 +405,23 @@ export default function HomeScreen() {
             </View>
           )}
 
+
+          {!isAuthenticated && (
+            <TouchableOpacity
+              style={styles.employeeLoginButton}
+              onPress={() => router.push("/login")}
+            >
+              <Text style={styles.employeeLoginText}>Employee Login</Text>
+            </TouchableOpacity>
+          )}
+
+          {isAuthenticated && user && (
+            <View style={styles.employeeInfoCard}>
+              <Text style={styles.employeeInfoTitle}>Logged in as:</Text>
+              <Text style={styles.employeeInfoName}>{user.fullName}</Text>
+              <Text style={styles.employeeInfoRole}>{user.role.replace('_', ' ').toUpperCase()}</Text>
+            </View>
+          )}
 
           </ScrollView>
         </ImageBackground>
@@ -785,5 +804,45 @@ const styles = StyleSheet.create({
   mascotSmallIcon: {
     width: 28,
     height: 28,
+  },
+  employeeLoginButton: {
+    marginTop: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: "rgba(26, 26, 26, 0.95)",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center" as const,
+  },
+  employeeLoginText: {
+    fontSize: 14,
+    fontWeight: "600" as const,
+    color: colors.textSecondary,
+  },
+  employeeInfoCard: {
+    marginTop: 24,
+    padding: 16,
+    backgroundColor: "rgba(26, 26, 26, 0.95)",
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    alignItems: "center" as const,
+  },
+  employeeInfoTitle: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  employeeInfoName: {
+    fontSize: 16,
+    fontWeight: "700" as const,
+    color: colors.text,
+    marginBottom: 2,
+  },
+  employeeInfoRole: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: "600" as const,
   },
 });
