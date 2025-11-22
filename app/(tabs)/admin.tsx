@@ -1663,20 +1663,6 @@ export default function AdminScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.quickActionCard}
-              onPress={handleOpenConversationList}
-            >
-              <MessageSquare color={"#2196F3"} size={28} />
-              <Text style={styles.quickActionLabel}>Messages</Text>
-              {requests.some((r) => r.messages && r.messages.length > 0) && (
-                <View style={styles.quickActionBadge}>
-                  <Text style={styles.quickActionBadgeText}>
-                    {requests.reduce((total, r) => total + (r.messages?.length || 0), 0)}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.quickActionCard}
               onPress={handleOpenUserManagement}
             >
               <UsersIcon color={"#4CAF50"} size={28} />
