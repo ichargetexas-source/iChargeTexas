@@ -3,12 +3,10 @@ import { Home, Plus, History, Shield, MessageSquare, Users as UsersIcon, Message
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useService } from "@/constants/serviceContext";
-import { useAuth } from "@/constants/authContext";
 import { useTheme } from "@/constants/themeContext";
 
 export default function TabLayout() {
   const { requests } = useService();
-  const { user } = useAuth();
   const { theme, colors } = useTheme();
   
   const pendingRequests = requests.filter((r) => r.status === "pending");
@@ -18,8 +16,6 @@ export default function TabLayout() {
     const adminMessages = messages.filter(m => m.sender === "admin");
     return count + adminMessages.length;
   }, 0);
-
-  const isAdminOrSuperAdmin = user?.role === "admin" || user?.role === "super_admin";
 
   const styles = useMemo(() => StyleSheet.create({
     badge: {
@@ -69,7 +65,6 @@ export default function TabLayout() {
           title: "Dashboard",
           headerTitle: theme.businessName,
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
-          href: isAdminOrSuperAdmin ? null : undefined,
         }}
       />
       <Tabs.Screen
@@ -78,7 +73,6 @@ export default function TabLayout() {
           title: "New Request",
           headerTitle: "Create Request",
           tabBarIcon: ({ color, size }) => <Plus color={color} size={size} />,
-          href: isAdminOrSuperAdmin ? null : undefined,
         }}
       />
       <Tabs.Screen
@@ -107,7 +101,6 @@ export default function TabLayout() {
               )}
             </View>
           ),
-          href: isAdminOrSuperAdmin ? null : undefined,
         }}
       />
       <Tabs.Screen
@@ -142,7 +135,6 @@ export default function TabLayout() {
           title: "Customization",
           headerTitle: "Customization",
           tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
-          href: isAdminOrSuperAdmin ? undefined : null,
         }}
       />
     </Tabs>
