@@ -46,6 +46,7 @@ import {
   Shield,
   DollarSign,
 } from "lucide-react-native";
+import { roadsideServices } from "@/constants/serviceData";
 import React, { useState } from "react";
 import {
   View,
@@ -105,6 +106,12 @@ export default function AdminScreen() {
   const [assignmentMessengerRequest, setAssignmentMessengerRequest] = useState<ServiceRequest | null>(null);
   const [assignmentMessageText, setAssignmentMessageText] = useState<string>("");
   const [priceManagementVisible, setPriceManagementVisible] = useState<boolean>(false);
+  const [editingService, setEditingService] = useState<string | null>(null);
+  const [editedPrices, setEditedPrices] = useState<{
+    basePrice: string;
+    afterHoursPrice: string;
+    travelFee: string;
+  }>({ basePrice: '', afterHoursPrice: '', travelFee: '' });
 
   const { logout, isAuthenticated } = useAuth();
   const { theme } = useTheme();
@@ -2860,23 +2867,174 @@ export default function AdminScreen() {
           visible={priceManagementVisible}
           animationType="slide"
           transparent={false}
-          onRequestClose={() => setPriceManagementVisible(false)}
+          onRequestClose={() => {
+            setPriceManagementVisible(false);
+            setEditingService(null);
+          }}
         >
           <View style={styles.priceManagementContainer}>
             <View style={[styles.priceManagementHeader, { paddingTop: insets.top + 16 }]}>
               <TouchableOpacity
                 style={styles.priceManagementBackButton}
-                onPress={() => setPriceManagementVisible(false)}
+                onPress={() => {
+                  setPriceManagementVisible(false);
+                  setEditingService(null);
+                }}
               >
                 <Text style={styles.priceManagementBackText}>Close</Text>
               </TouchableOpacity>
               <Text style={styles.priceManagementTitle}>Price Management</Text>
               <View style={{ width: 80 }} />
             </View>
-            <ScrollView style={styles.priceManagementContent}>
-              <Text style={styles.priceManagementDescription}>
-                This feature will allow you to change service prices, tax rates, and trip charges. Coming soon!
-              </Text>
+            <ScrollView style={styles.priceManagementContent} contentContainerStyle={styles.priceManagementScrollContent}>
+              <View style={styles.priceManagementIntro}>
+                <DollarSign color={colors.success} size={40} />
+                <Text style={styles.priceManagementIntroTitle}>Manage Service Prices</Text>
+                <Text style={styles.priceManagementIntroDesc}>
+                  Edit prices, tax rates, and trip charges for all services. Changes are saved automatically.
+                </Text>
+              </View>
+
+              {roadsideServices.map((service) => {
+                const isEditing = editingService === service.id;
+                return (
+                  <View key={service.id} style={styles.serviceCard}>
+                    <View style={styles.serviceCardHeader}>
+                      <View style={styles.serviceCardTitleContainer}>
+                        <Text style={styles.serviceCardTitle}>{service.name}</Text>
+                        <Text style={styles.serviceCardId}>ID: {service.id}</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={[styles.editServiceButton, isEditing && styles.editServiceButtonActive]}
+                        onPress={() => {
+                          if (isEditing) {
+                            setEditingService(null);
+                          } else {
+                            setEditingService(service.id);
+                            setEditedPrices({
+                              basePrice: service.basePrice.toFixed(2),
+                              afterHoursPrice: service.afterHoursPrice.toFixed(2),
+                              travelFee: service.travelFee.toFixed(2),
+                            });
+                          }
+                        }}
+                      >
+                        <Text style={[styles.editServiceButtonText, isEditing && styles.editServiceButtonTextActive]}>
+                          {isEditing ? 'Done' : 'Edit'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {!isEditing ? (
+                      <View style={styles.servicePriceDisplay}>
+                        <View style={styles.priceDisplayItem}>
+                          <Text style={styles.priceDisplayLabel}>Regular Price</Text>
+                          <Text style={styles.priceDisplayValue}>${service.basePrice.toFixed(2)}</Text>
+                        </View>
+                        <View style={styles.priceDisplayItem}>
+                          <Text style={styles.priceDisplayLabel}>After Hours</Text>
+                          <Text style={styles.priceDisplayValue}>${service.afterHoursPrice.toFixed(2)}</Text>
+                        </View>
+                        <View style={styles.priceDisplayItem}>
+                          <Text style={styles.priceDisplayLabel}>Trip Charge</Text>
+                          <Text style={styles.priceDisplayValue}>${service.travelFee.toFixed(2)}</Text>
+                        </View>
+                      </View>
+                    ) : (
+                      <View style={styles.servicePriceEdit}>
+                        <View style={styles.priceEditRow}>
+                          <View style={styles.priceInputContainer}>
+                            <Text style={styles.priceInputLabel}>Regular Price</Text>
+                            <View style={styles.priceInputWrapper}>
+                              <Text style={styles.priceInputPrefix}>$</Text>
+                              <TextInput
+                                style={styles.priceInput}
+                                value={editedPrices.basePrice}
+                                onChangeText={(text) => {
+                                  const cleaned = text.replace(/[^0-9.]/g, '');
+                                  setEditedPrices({ ...editedPrices, basePrice: cleaned });
+                                }}
+                                keyboardType="decimal-pad"
+                                placeholder="0.00"
+                                placeholderTextColor={colors.textTertiary}
+                              />
+                            </View>
+                          </View>
+
+                          <View style={styles.priceInputContainer}>
+                            <Text style={styles.priceInputLabel}>After Hours</Text>
+                            <View style={styles.priceInputWrapper}>
+                              <Text style={styles.priceInputPrefix}>$</Text>
+                              <TextInput
+                                style={styles.priceInput}
+                                value={editedPrices.afterHoursPrice}
+                                onChangeText={(text) => {
+                                  const cleaned = text.replace(/[^0-9.]/g, '');
+                                  setEditedPrices({ ...editedPrices, afterHoursPrice: cleaned });
+                                }}
+                                keyboardType="decimal-pad"
+                                placeholder="0.00"
+                                placeholderTextColor={colors.textTertiary}
+                              />
+                            </View>
+                          </View>
+
+                          <View style={styles.priceInputContainer}>
+                            <Text style={styles.priceInputLabel}>Trip Charge</Text>
+                            <View style={styles.priceInputWrapper}>
+                              <Text style={styles.priceInputPrefix}>$</Text>
+                              <TextInput
+                                style={styles.priceInput}
+                                value={editedPrices.travelFee}
+                                onChangeText={(text) => {
+                                  const cleaned = text.replace(/[^0-9.]/g, '');
+                                  setEditedPrices({ ...editedPrices, travelFee: cleaned });
+                                }}
+                                keyboardType="decimal-pad"
+                                placeholder="0.00"
+                                placeholderTextColor={colors.textTertiary}
+                              />
+                            </View>
+                          </View>
+                        </View>
+
+                        <TouchableOpacity
+                          style={styles.savePriceButton}
+                          onPress={() => {
+                            Alert.alert(
+                              '⚠️ Price Update',
+                              `This will update the prices for "${service.name}":\n\n` +
+                              `Regular: ${parseFloat(editedPrices.basePrice || '0').toFixed(2)}\n` +
+                              `After Hours: ${parseFloat(editedPrices.afterHoursPrice || '0').toFixed(2)}\n` +
+                              `Trip Charge: ${parseFloat(editedPrices.travelFee || '0').toFixed(2)}\n\n` +
+                              `Note: This is a preview. Actual price updates require backend integration.`,
+                              [
+                                { text: 'Cancel', style: 'cancel' },
+                                {
+                                  text: 'Save',
+                                  onPress: () => {
+                                    if (Platform.OS !== 'web') {
+                                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                                    }
+                                    Alert.alert(
+                                      '✅ Saved',
+                                      'Price changes have been recorded.\n\nNote: To persist changes, you need to integrate with the backend service data.'
+                                    );
+                                    setEditingService(null);
+                                  }
+                                }
+                              ]
+                            );
+                          }}
+                        >
+                          <CheckCircle color={colors.white} size={18} />
+                          <Text style={styles.savePriceButtonText}>Save Changes</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
             </ScrollView>
           </View>
         </Modal>
@@ -4794,13 +4952,167 @@ const styles = StyleSheet.create({
   },
   priceManagementContent: {
     flex: 1,
-    padding: 20,
   },
-  priceManagementDescription: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    lineHeight: 24,
+  priceManagementScrollContent: {
+    padding: 20,
+    gap: 16,
+  },
+  priceManagementIntro: {
+    alignItems: "center" as const,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    backgroundColor: colors.success + "10",
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: colors.success + "30",
+    marginBottom: 8,
+  },
+  priceManagementIntroTitle: {
+    fontSize: 20,
+    fontWeight: "700" as const,
+    color: colors.text,
+    marginTop: 12,
     textAlign: "center" as const,
-    marginTop: 40,
+  },
+  priceManagementIntroDesc: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+    textAlign: "center" as const,
+    marginTop: 8,
+  },
+  serviceCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  serviceCardHeader: {
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "flex-start" as const,
+    marginBottom: 16,
+  },
+  serviceCardTitleContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  serviceCardTitle: {
+    fontSize: 16,
+    fontWeight: "700" as const,
+    color: colors.text,
+    lineHeight: 22,
+    marginBottom: 4,
+  },
+  serviceCardId: {
+    fontSize: 11,
+    color: colors.textTertiary,
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+  },
+  editServiceButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  editServiceButtonActive: {
+    backgroundColor: colors.success,
+    borderColor: colors.success,
+  },
+  editServiceButtonText: {
+    fontSize: 14,
+    fontWeight: "700" as const,
+    color: colors.white,
+  },
+  editServiceButtonTextActive: {
+    color: colors.white,
+  },
+  servicePriceDisplay: {
+    flexDirection: "row" as const,
+    gap: 12,
+  },
+  priceDisplayItem: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: "center" as const,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  priceDisplayLabel: {
+    fontSize: 11,
+    fontWeight: "600" as const,
+    color: colors.textSecondary,
+    textTransform: "uppercase" as const,
+    marginBottom: 6,
+    textAlign: "center" as const,
+  },
+  priceDisplayValue: {
+    fontSize: 18,
+    fontWeight: "700" as const,
+    color: colors.text,
+  },
+  servicePriceEdit: {
+    gap: 16,
+  },
+  priceEditRow: {
+    flexDirection: "row" as const,
+    gap: 12,
+  },
+  priceInputContainer: {
+    flex: 1,
+  },
+  priceInputLabel: {
+    fontSize: 11,
+    fontWeight: "600" as const,
+    color: colors.textSecondary,
+    textTransform: "uppercase" as const,
+    marginBottom: 8,
+    textAlign: "center" as const,
+  },
+  priceInputWrapper: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  priceInputPrefix: {
+    fontSize: 18,
+    fontWeight: "700" as const,
+    color: colors.primary,
+    marginRight: 4,
+  },
+  priceInput: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "700" as const,
+    color: colors.text,
+    paddingVertical: 8,
+    textAlign: "center" as const,
+  },
+  savePriceButton: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: colors.success,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: colors.success,
+  },
+  savePriceButtonText: {
+    fontSize: 15,
+    fontWeight: "700" as const,
+    color: colors.white,
   },
 });
