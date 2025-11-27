@@ -1,14 +1,15 @@
 import { Tabs } from "expo-router";
 import { Home, Plus, History, Shield, MessageSquare, Users as UsersIcon, MessageCircle, Settings } from "lucide-react-native";
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import colors from "@/constants/colors";
 import { useService } from "@/constants/serviceContext";
 import { useAuth } from "@/constants/authContext";
+import { useTheme } from "@/constants/themeContext";
 
 export default function TabLayout() {
   const { requests } = useService();
   const { user } = useAuth();
+  const { theme, colors } = useTheme();
   
   const pendingRequests = requests.filter((r) => r.status === "pending");
   
@@ -19,6 +20,28 @@ export default function TabLayout() {
   }, 0);
 
   const isAdminOrSuperAdmin = user?.role === "admin" || user?.role === "super_admin";
+
+  const styles = useMemo(() => StyleSheet.create({
+    badge: {
+      position: "absolute" as const,
+      top: -4,
+      right: -8,
+      backgroundColor: colors.error,
+      borderRadius: 10,
+      minWidth: 18,
+      height: 18,
+      paddingHorizontal: 4,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 2,
+      borderColor: colors.surface,
+    },
+    badgeText: {
+      fontSize: 10,
+      fontWeight: "700" as const,
+      color: colors.white,
+    },
+  }), [colors]);
 
   return (
     <Tabs
@@ -44,7 +67,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Dashboard",
-          headerTitle: "iChargeTexas",
+          headerTitle: theme.businessName,
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
           href: isAdminOrSuperAdmin ? null : undefined,
         }}
@@ -125,25 +148,3 @@ export default function TabLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    position: "absolute" as const,
-    top: -4,
-    right: -8,
-    backgroundColor: colors.error,
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    paddingHorizontal: 4,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: colors.surface,
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: "700" as const,
-    color: colors.white,
-  },
-});

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -8,6 +8,7 @@ import { UserContext } from "@/constants/userContext";
 import { LanguageContext } from "@/constants/languageContext";
 import { MessengerContext } from "@/constants/messengerContext";
 import { AuthContext } from "@/constants/authContext";
+import { ThemeContext } from "@/constants/themeContext";
 import { StatusBar } from "expo-status-bar";
 import { LogBox } from "react-native";
 import { trpc, trpcClient } from "@/lib/trpc";
@@ -56,17 +57,19 @@ export default function RootLayout() {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <AuthContext>
-          <LanguageContext>
-            <UserContext>
-              <ServiceContext>
-                <MessengerContext>
-                  <GestureHandlerRootView style={{ flex: 1 }}>
-                    <RootLayoutNav />
-                  </GestureHandlerRootView>
-                </MessengerContext>
-              </ServiceContext>
-            </UserContext>
-          </LanguageContext>
+          <ThemeContext>
+            <LanguageContext>
+              <UserContext>
+                <ServiceContext>
+                  <MessengerContext>
+                    <GestureHandlerRootView style={{ flex: 1 }}>
+                      <RootLayoutNav />
+                    </GestureHandlerRootView>
+                  </MessengerContext>
+                </ServiceContext>
+              </UserContext>
+            </LanguageContext>
+          </ThemeContext>
         </AuthContext>
       </QueryClientProvider>
     </trpc.Provider>
