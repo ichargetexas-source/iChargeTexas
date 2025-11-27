@@ -39,6 +39,11 @@ export default function HomeScreen() {
   const { isAuthenticated, user } = useAuth();
   const { colors, theme } = useTheme();
 
+  const defaultServiceMascot = "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png";
+  const sharedServiceMascot = theme.customButtonImages?.serviceSharedMascot ?? null;
+  const roadsideMascotImage = sharedServiceMascot ?? theme.customButtonImages?.roadsideMascot ?? defaultServiceMascot;
+  const chargingMascotImage = sharedServiceMascot ?? theme.customButtonImages?.chargingMascot ?? defaultServiceMascot;
+
   const { language, changeLanguage } = useLanguage();
   const t = translations[language] || translations.en;
   const [location, setLocation] = useState<Location.LocationObject | null>(
@@ -406,7 +411,7 @@ export default function HomeScreen() {
                       </Text>
                     </View>
                     <Image
-                      source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                      source={{ uri: roadsideMascotImage }}
                       style={styles.mascotImage}
                       resizeMode="contain"
                     />
@@ -439,7 +444,7 @@ export default function HomeScreen() {
                       </Text>
                     </View>
                     <Image
-                      source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                      source={{ uri: chargingMascotImage }}
                       style={styles.mascotImage}
                       resizeMode="contain"
                     />
@@ -759,19 +764,11 @@ export default function HomeScreen() {
                       {t.roadsideDesc}
                     </Text>
                   </View>
-                  {theme.customButtonImages?.roadsideMascot ? (
-                    <Image
-                      source={{ uri: theme.customButtonImages.roadsideMascot }}
-                      style={styles.mascotImage}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <Image
-                      source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
-                      style={styles.mascotImage}
-                      resizeMode="contain"
-                    />
-                  )}
+                  <Image
+                    source={{ uri: roadsideMascotImage }}
+                    style={styles.mascotImage}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -800,19 +797,11 @@ export default function HomeScreen() {
                       {t.scheduledChargingDesc}
                     </Text>
                   </View>
-                  {theme.customButtonImages?.chargingMascot ? (
-                    <Image
-                      source={{ uri: theme.customButtonImages.chargingMascot }}
-                      style={styles.mascotImage}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <Image
-                      source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
-                      style={styles.mascotImage}
-                      resizeMode="contain"
-                    />
-                  )}
+                  <Image
+                    source={{ uri: chargingMascotImage }}
+                    style={styles.mascotImage}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
               </View>
             </View>

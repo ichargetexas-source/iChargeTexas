@@ -10,7 +10,7 @@ import {
   Platform,
   Linking,
 } from "react-native";
-import { useTheme, COLOR_SCHEMES } from "@/constants/themeContext";
+import { useTheme, COLOR_SCHEMES, ThemeSettings } from "@/constants/themeContext";
 import * as ImagePicker from "expo-image-picker";
 import { Check, Upload, Palette, Type, Image as ImageIcon, Save, Truck, Zap, MapPin, Send, X } from "lucide-react-native";
 
@@ -25,9 +25,10 @@ export default function CustomizationScreen() {
     locationButton: null,
     submitButton: null,
   });
-  const [selectedButtonImages, setSelectedButtonImages] = useState(theme.customButtonImages || {
-    roadsideMascot: null,
-    chargingMascot: null,
+  const [selectedButtonImages, setSelectedButtonImages] = useState<ThemeSettings["customButtonImages"]>({
+    roadsideMascot: theme.customButtonImages?.roadsideMascot ?? null,
+    chargingMascot: theme.customButtonImages?.chargingMascot ?? null,
+    serviceSharedMascot: theme.customButtonImages?.serviceSharedMascot ?? null,
   });
   const [selectedButtonColors, setSelectedButtonColors] = useState(theme.customButtonColors || {
     roadsideBackground: null,
@@ -253,6 +254,68 @@ export default function CustomizationScreen() {
           </Text>
           
           <View style={styles.buttonCustomizationList}>
+            <View style={[styles.buttonCustomItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.buttonCustomHeader}>
+                <ImageIcon size={20} color={colors.primary} />
+                <Text style={[styles.buttonCustomLabel, { color: colors.text }]}>Service Buttons Robot Icon</Text>
+              </View>
+              <Text style={[styles.buttonCustomSubLabel, { color: colors.textSecondary }]}>
+                Apply a single image to replace the little robot on both Roadside Assistance and Schedule Charging buttons.
+              </Text>
+              <View style={styles.iconActions}>
+                <TouchableOpacity
+                  style={[styles.iconButton, { backgroundColor: colors.primary }]}
+                  onPress={async () => {
+                    if (Platform.OS === 'web') {
+                      Alert.alert("Not Available", "Image upload is not available on web.");
+                      return;
+                    }
+                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                    if (status !== 'granted') {
+                      Alert.alert("Permission Required", "Photo library access is required.");
+                      return;
+                    }
+                    const result = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ["images"],
+                      allowsEditing: true,
+                      aspect: [1, 1],
+                      quality: 1,
+                    });
+                    if (!result.canceled && result.assets[0]) {
+                      setSelectedButtonImages({
+                        ...selectedButtonImages,
+                        serviceSharedMascot: result.assets[0].uri,
+                      });
+                      setHasUnsavedChanges(true);
+                    }
+                  }}
+                >
+                  <Upload size={16} color={colors.white} />
+                  <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
+                </TouchableOpacity>
+                {selectedButtonImages?.serviceSharedMascot && (
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: colors.error }]}
+                    onPress={() => {
+                      setSelectedButtonImages({
+                        ...selectedButtonImages,
+                        serviceSharedMascot: null,
+                      });
+                      setHasUnsavedChanges(true);
+                    }}
+                  >
+                    <X size={16} color={colors.white} />
+                    <Text style={[styles.iconButtonText, { color: colors.white }]}>Remove</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              {selectedButtonImages?.serviceSharedMascot && (
+                <Text style={[styles.buttonCustomSubLabel, { color: colors.textSecondary }]}>
+                  Shared icon applied to both service buttons.
+                </Text>
+              )}
+            </View>
+
             <View style={[styles.buttonCustomItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={styles.buttonCustomHeader}>
                 <Truck size={20} color={colors.roadside} />

@@ -190,6 +190,7 @@ export interface ThemeSettings {
   customButtonImages: {
     roadsideMascot: string | null;
     chargingMascot: string | null;
+    serviceSharedMascot: string | null;
   };
   customButtonColors: {
     roadsideBackground: string | null;
@@ -210,6 +211,7 @@ const DEFAULT_THEME: ThemeSettings = {
   customButtonImages: {
     roadsideMascot: null,
     chargingMascot: null,
+    serviceSharedMascot: null,
   },
   customButtonColors: {
     roadsideBackground: null,
@@ -239,7 +241,10 @@ export const [ThemeContext, useTheme] = createContextHook(() => {
             ...DEFAULT_THEME,
             ...parsedTheme,
             customIcons: parsedTheme.customIcons || DEFAULT_THEME.customIcons,
-            customButtonImages: parsedTheme.customButtonImages || DEFAULT_THEME.customButtonImages,
+            customButtonImages: {
+              ...DEFAULT_THEME.customButtonImages,
+              ...(parsedTheme.customButtonImages || {}),
+            },
             customButtonColors: parsedTheme.customButtonColors || DEFAULT_THEME.customButtonColors,
           };
           
