@@ -353,11 +353,19 @@ export default function HomeScreen() {
                         style={[styles.useLocationButton, { backgroundColor: colors.primary }]}
                         onPress={useThisLocation}
                       >
-                        <Image
-                          source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
-                          style={styles.mascotSmallIcon}
-                          resizeMode="contain"
-                        />
+                        {theme.customIcons?.locationButton ? (
+                          <Image
+                            source={{ uri: theme.customIcons.locationButton }}
+                            style={styles.mascotSmallIcon}
+                            resizeMode="contain"
+                          />
+                        ) : (
+                          <Image
+                            source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                            style={styles.mascotSmallIcon}
+                            resizeMode="contain"
+                          />
+                        )}
                         <Text style={[styles.useLocationButtonText, { color: colors.white }]}>
                           {t.isServiceAtLocation}
                         </Text>
@@ -382,7 +390,15 @@ export default function HomeScreen() {
                   >
                     <View style={styles.serviceContent}>
                       <View style={styles.serviceIconContainer}>
-                        <Truck color={colors.white} size={32} />
+                        {theme.customIcons?.roadsideButton ? (
+                          <Image
+                            source={{ uri: theme.customIcons.roadsideButton }}
+                            style={{ width: 32, height: 32 }}
+                            resizeMode="contain"
+                          />
+                        ) : (
+                          <Truck color={colors.white} size={32} />
+                        )}
                       </View>
                       <Text style={[styles.serviceTitle, { color: colors.white }]}>{t.roadsideAssistance}</Text>
                       <Text style={[styles.serviceDescription, { color: colors.white }]}>
@@ -407,7 +423,15 @@ export default function HomeScreen() {
                   >
                     <View style={styles.serviceContent}>
                       <View style={styles.serviceIconContainer}>
-                        <Zap color={colors.white} size={36} />
+                        {theme.customIcons?.chargingButton ? (
+                          <Image
+                            source={{ uri: theme.customIcons.chargingButton }}
+                            style={{ width: 36, height: 36 }}
+                            resizeMode="contain"
+                          />
+                        ) : (
+                          <Zap color={colors.white} size={36} />
+                        )}
                       </View>
                       <Text style={[styles.serviceTitle, { color: colors.white }]}>{t.scheduledCharging}</Text>
                       <Text style={[styles.serviceDescription, { color: colors.white }]}>
@@ -683,7 +707,7 @@ export default function HomeScreen() {
                       style={[styles.useLocationButton, { backgroundColor: colors.primary }]}
                       onPress={useThisLocation}
                     >
-                      {theme.customIcons.locationButton ? (
+                      {theme.customIcons?.locationButton ? (
                         <Image
                           source={{ uri: theme.customIcons.locationButton }}
                           style={styles.mascotSmallIcon}
@@ -720,7 +744,7 @@ export default function HomeScreen() {
                 >
                   <View style={styles.serviceContent}>
                     <View style={styles.serviceIconContainer}>
-                      {theme.customIcons.roadsideButton ? (
+                      {theme.customIcons?.roadsideButton ? (
                         <Image
                           source={{ uri: theme.customIcons.roadsideButton }}
                           style={{ width: 32, height: 32 }}
@@ -753,7 +777,7 @@ export default function HomeScreen() {
                 >
                   <View style={styles.serviceContent}>
                     <View style={styles.serviceIconContainer}>
-                      {theme.customIcons.chargingButton ? (
+                      {theme.customIcons?.chargingButton ? (
                         <Image
                           source={{ uri: theme.customIcons.chargingButton }}
                           style={{ width: 36, height: 36 }}
