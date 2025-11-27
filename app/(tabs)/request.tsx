@@ -793,23 +793,58 @@ export default function RequestScreen() {
               </View>
               {selectedServices.size > 0 && (
                 <View style={styles.totalCard}>
-                  <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>Subtotal:</Text>
-                    <Text style={styles.totalValue}>
-                      ${calculateTotal().subtotal.toFixed(2)}
-                    </Text>
+                  <Text style={styles.pricingBreakdownTitle}>Pricing Breakdown</Text>
+                  
+                  <View style={styles.pricingRow}>
+                    <View style={styles.pricingLabelContainer}>
+                      <Text style={styles.pricingLabel}>Service Price:</Text>
+                      <Text style={styles.pricingHint}>Base cost for services</Text>
+                    </View>
+                    <View style={styles.pricingValueBox}>
+                      <Text style={styles.pricingBoxLabel}>PRICE</Text>
+                      <Text style={styles.pricingValue}>
+                        ${calculateTotal().subtotal.toFixed(2)}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>Tax (8.25%):</Text>
-                    <Text style={styles.totalValue}>
-                      ${calculateTotal().tax.toFixed(2)}
-                    </Text>
+
+                  <View style={styles.pricingRow}>
+                    <View style={styles.pricingLabelContainer}>
+                      <Text style={styles.pricingLabel}>Sales Tax:</Text>
+                      <Text style={styles.pricingHint}>8.25% state tax</Text>
+                    </View>
+                    <View style={styles.pricingValueBox}>
+                      <Text style={styles.pricingBoxLabel}>TAX</Text>
+                      <Text style={styles.pricingValue}>
+                        ${calculateTotal().tax.toFixed(2)}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={[styles.totalRow, styles.totalRowFinal]}>
-                    <Text style={styles.totalLabelFinal}>Total:</Text>
-                    <Text style={styles.totalValueFinal}>
-                      ${calculateTotal().total.toFixed(2)}
-                    </Text>
+
+                  <View style={styles.pricingRow}>
+                    <View style={styles.pricingLabelContainer}>
+                      <Text style={styles.pricingLabel}>Trip Charge:</Text>
+                      <Text style={styles.pricingHint}>Included in service price</Text>
+                    </View>
+                    <View style={styles.pricingValueBox}>
+                      <Text style={styles.pricingBoxLabel}>TRIP</Text>
+                      <Text style={styles.pricingValue}>
+                        $25.00
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.totalDivider} />
+                  
+                  <View style={[styles.pricingRow, styles.totalRowFinal]}>
+                    <View style={styles.pricingLabelContainer}>
+                      <Text style={styles.totalLabelFinal}>Total Amount:</Text>
+                    </View>
+                    <View style={[styles.pricingValueBox, styles.totalValueBox]}>
+                      <Text style={styles.totalValueFinal}>
+                        ${calculateTotal().total.toFixed(2)}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               )}
@@ -1962,13 +1997,72 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   totalCard: {
-    backgroundColor: colors.primary + "10",
-    borderRadius: 14,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
     padding: 20,
     borderWidth: 2,
     borderColor: colors.primary,
-    marginTop: 12,
-    gap: 10,
+    marginTop: 16,
+    gap: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  pricingBreakdownTitle: {
+    fontSize: 16,
+    fontWeight: "700" as const,
+    color: colors.text,
+    marginBottom: 8,
+    textAlign: "center" as const,
+    textTransform: "uppercase" as const,
+    letterSpacing: 1,
+  },
+  pricingRow: {
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "center" as const,
+    gap: 12,
+  },
+  pricingLabelContainer: {
+    flex: 1,
+    gap: 2,
+  },
+  pricingLabel: {
+    fontSize: 14,
+    fontWeight: "600" as const,
+    color: colors.text,
+  },
+  pricingHint: {
+    fontSize: 11,
+    color: colors.textSecondary,
+  },
+  pricingValueBox: {
+    backgroundColor: colors.primary + "15",
+    borderRadius: 10,
+    padding: 12,
+    minWidth: 110,
+    alignItems: "center" as const,
+    borderWidth: 2,
+    borderColor: colors.primary + "40",
+  },
+  pricingBoxLabel: {
+    fontSize: 10,
+    fontWeight: "700" as const,
+    color: colors.primary,
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  pricingValue: {
+    fontSize: 18,
+    fontWeight: "700" as const,
+    color: colors.text,
+  },
+  totalDivider: {
+    height: 2,
+    backgroundColor: colors.primary + "30",
+    marginVertical: 8,
   },
   totalRow: {
     flexDirection: "row" as const,
@@ -1986,19 +2080,21 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   totalRowFinal: {
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    marginTop: 4,
   },
   totalLabelFinal: {
     fontSize: 18,
     fontWeight: "700" as const,
     color: colors.text,
   },
+  totalValueBox: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
   totalValueFinal: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700" as const,
-    color: colors.primary,
+    color: colors.white,
   },
   noSpareWarning: {
     marginTop: 16,

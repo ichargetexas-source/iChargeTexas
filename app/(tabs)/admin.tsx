@@ -43,6 +43,7 @@ import {
   Users as UsersIcon,
   UserPlus,
   Shield,
+  DollarSign,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -102,6 +103,7 @@ export default function AdminScreen() {
   const [assignmentMessengerVisible, setAssignmentMessengerVisible] = useState<boolean>(false);
   const [assignmentMessengerRequest, setAssignmentMessengerRequest] = useState<ServiceRequest | null>(null);
   const [assignmentMessageText, setAssignmentMessageText] = useState<string>("");
+  const [priceManagementVisible, setPriceManagementVisible] = useState<boolean>(false);
 
   const { logout, isAuthenticated } = useAuth();
 
@@ -1707,6 +1709,18 @@ export default function AdminScreen() {
               <Shield color={"#FF6B35"} size={28} />
               <Text style={styles.quickActionLabel}>Audit Logs</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickActionCard}
+              onPress={() => {
+                if (Platform.OS !== "web") {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setPriceManagementVisible(true);
+              }}
+            >
+              <DollarSign color={"#10B981"} size={28} />
+              <Text style={styles.quickActionLabel}>Change Prices</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -2837,6 +2851,31 @@ export default function AdminScreen() {
                 </TouchableOpacity>
               </View>
             </KeyboardAvoidingView>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={priceManagementVisible}
+          animationType="slide"
+          transparent={false}
+          onRequestClose={() => setPriceManagementVisible(false)}
+        >
+          <View style={styles.priceManagementContainer}>
+            <View style={[styles.priceManagementHeader, { paddingTop: insets.top + 16 }]}>
+              <TouchableOpacity
+                style={styles.priceManagementBackButton}
+                onPress={() => setPriceManagementVisible(false)}
+              >
+                <Text style={styles.priceManagementBackText}>Close</Text>
+              </TouchableOpacity>
+              <Text style={styles.priceManagementTitle}>Price Management</Text>
+              <View style={{ width: 80 }} />
+            </View>
+            <ScrollView style={styles.priceManagementContent}>
+              <Text style={styles.priceManagementDescription}>
+                This feature will allow you to change service prices, tax rates, and trip charges. Coming soon!
+              </Text>
+            </ScrollView>
           </View>
         </Modal>
 
@@ -4720,5 +4759,46 @@ const styles = StyleSheet.create({
   messengerHeaderContent: {
     flex: 1,
     paddingRight: 70,
+  },
+  priceManagementContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  priceManagementHeader: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  priceManagementTitle: {
+    fontSize: 18,
+    fontWeight: "700" as const,
+    color: colors.text,
+  },
+  priceManagementBackButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    backgroundColor: colors.error + "20",
+    borderRadius: 10,
+  },
+  priceManagementBackText: {
+    fontSize: 20,
+    color: colors.error,
+    fontWeight: "700" as const,
+  },
+  priceManagementContent: {
+    flex: 1,
+    padding: 20,
+  },
+  priceManagementDescription: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 24,
+    textAlign: "center" as const,
+    marginTop: 40,
   },
 });
