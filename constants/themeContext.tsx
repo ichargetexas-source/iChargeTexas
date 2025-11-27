@@ -228,11 +228,35 @@ export const [ThemeContext, useTheme] = createContextHook(() => {
   const loadTheme = async () => {
     try {
       const storedTheme = await AsyncStorage.getItem("@app_theme");
+      console.log("[ThemeContext] Loaded theme from storage:", storedTheme?.substring(0, 100));
+      
       if (storedTheme) {
-        setThemeState(JSON.parse(storedTheme));
+        try {
+          const parsedTheme = JSON.parse(storedTheme);
+          console.log("[ThemeContext] Successfully parsed theme:", parsedTheme);
+          
+          const validatedTheme = {
+            ...DEFAULT_THEME,
+            ...parsedTheme,
+            customIcons: parsedTheme.customIcons || DEFAULT_THEME.customIcons,
+            customButtonImages: parsedTheme.customButtonImages || DEFAULT_THEME.customButtonImages,
+            customButtonColors: parsedTheme.customButtonColors || DEFAULT_THEME.customButtonColors,
+          };
+          
+          setThemeState(validatedTheme);
+        } catch (parseError) {
+          console.error("[ThemeContext] JSON parse error:", parseError);
+          console.error("[ThemeContext] Invalid stored theme, resetting to default:", storedTheme);
+          await AsyncStorage.removeItem("@app_theme");
+          setThemeState(DEFAULT_THEME);
+        }
+      } else {
+        console.log("[ThemeContext] No stored theme found, using default");
+        setThemeState(DEFAULT_THEME);
       }
     } catch (error) {
-      console.error("Error loading theme:", error);
+      console.error("[ThemeContext] Error loading theme:", error);
+      setThemeState(DEFAULT_THEME);
     } finally {
       setIsLoading(false);
     }
