@@ -143,6 +143,25 @@ export default function AssignmentDetailScreen() {
       }
     }
     
+    if (newlyAddedStaff.length > 0) {
+      const staffNames = newlyAddedStaff
+        .map(staffId => {
+          const staff = availableStaff.find(s => s.id === staffId);
+          return staff ? staff.fullName : 'Staff member';
+        })
+        .join(', ');
+      
+      const messageToCustomer = newlyAddedStaff.length === 1
+        ? `${staffNames} has been assigned to your service request.`
+        : `${staffNames} have been assigned to your service request.`;
+      
+      await addMessage(
+        assignment.id,
+        messageToCustomer,
+        "admin"
+      );
+    }
+    
     if (Platform.OS !== "web") {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
