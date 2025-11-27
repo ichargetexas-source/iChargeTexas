@@ -3095,6 +3095,7 @@ const styles = StyleSheet.create({
   quickActionsContainer: {
     paddingHorizontal: 16,
     paddingVertical: 16,
+    paddingBottom: 24,
   },
   quickActionsTitle: {
     fontSize: 14,
@@ -3108,10 +3109,11 @@ const styles = StyleSheet.create({
     flexDirection: "row" as const,
     flexWrap: "wrap" as const,
     gap: 12,
+    rowGap: 12,
   },
   quickActionCard: {
-    flex: 1,
-    minWidth: 80,
+    width: "31%",
+    minWidth: 100,
     backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
@@ -3121,6 +3123,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     position: "relative" as const,
+    aspectRatio: 1,
   },
   quickActionLabel: {
     fontSize: 12,
@@ -3323,6 +3326,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 10,
+    marginTop: 8,
   },
   statCard: {
     flex: 1,
@@ -4219,10 +4223,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tabContainer: {
-    flexDirection: "row" as const,
+    flexDirection: "column" as const,
     paddingHorizontal: 16,
     paddingTop: 8,
     gap: 10,
+    marginBottom: 8,
   },
   tabButton: {
     flex: 1,
