@@ -11,19 +11,16 @@ import {
 } from "react-native";
 import { useTheme, COLOR_SCHEMES } from "@/constants/themeContext";
 import * as ImagePicker from "expo-image-picker";
-import { Check, Upload, Palette, Type, Image as ImageIcon } from "lucide-react-native";
+import { Check, Upload, Palette, Type, Image as ImageIcon, Save } from "lucide-react-native";
 
 export default function CustomizationScreen() {
-  const { theme, colors, setBusinessName, setBackgroundImage, setColorScheme } = useTheme();
+  const { theme, colors, setTheme } = useTheme();
   const [businessNameInput, setBusinessNameInput] = useState(theme.businessName);
   const [selectedSchemeId, setSelectedSchemeId] = useState(theme.colorScheme.id);
+  const [selectedBackgroundImage, setSelectedBackgroundImage] = useState<string | null>(theme.backgroundImage);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const handleSaveBusinessName = () => {
-    if (businessNameInput.trim()) {
-      setBusinessName(businessNameInput.trim());
-      Alert.alert("Success", "Business name updated successfully");
-    }
-  };
+
 
   const handlePickImage = async () => {
     if (Platform.OS === 'web') {
@@ -46,8 +43,8 @@ export default function CustomizationScreen() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setBackgroundImage(result.assets[0].uri);
-      Alert.alert("Success", "Background image updated successfully");
+      setSelectedBackgroundImage(result.assets[0].uri);
+      setHasUnsavedChanges(true);
     }
   };
 
@@ -61,8 +58,8 @@ export default function CustomizationScreen() {
           text: "Remove", 
           style: "destructive",
           onPress: () => {
-            setBackgroundImage(null);
-            Alert.alert("Success", "Background image removed");
+            setSelectedBackgroundImage(null);
+            setHasUnsavedChanges(true);
           }
         }
       ]
@@ -70,11 +67,33 @@ export default function CustomizationScreen() {
   };
 
   const handleSelectColorScheme = (schemeId: string) => {
-    const scheme = COLOR_SCHEMES.find(s => s.id === schemeId);
-    if (scheme) {
-      setSelectedSchemeId(schemeId);
-      setColorScheme(scheme);
-      Alert.alert("Success", `Color scheme changed to ${scheme.name}`);
+    setSelectedSchemeId(schemeId);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSaveAllChanges = async () => {
+    const selectedScheme = COLOR_SCHEMES.find(s => s.id === selectedSchemeId);
+    if (!selectedScheme) {
+      Alert.alert("Error", "Invalid color scheme selected");
+      return;
+    }
+
+    if (!businessNameInput.trim()) {
+      Alert.alert("Error", "Business name cannot be empty");
+      return;
+    }
+
+    try {
+      await setTheme({
+        businessName: businessNameInput.trim(),
+        backgroundImage: selectedBackgroundImage,
+        colorScheme: selectedScheme,
+      });
+      setHasUnsavedChanges(false);
+      Alert.alert("Success", "All changes saved successfully!");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      Alert.alert("Error", "Failed to save changes. Please try again.");
     }
   };
 
@@ -98,16 +117,14 @@ export default function CustomizationScreen() {
               color: colors.text 
             }]}
             value={businessNameInput}
-            onChangeText={setBusinessNameInput}
+            onChangeText={(text) => {
+              setBusinessNameInput(text);
+              setHasUnsavedChanges(true);
+            }}
             placeholder="Enter business name"
             placeholderTextColor={colors.textTertiary}
           />
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: colors.primary }]}
-            onPress={handleSaveBusinessName}
-          >
-            <Text style={styles.buttonText}>Save Business Name</Text>
-          </TouchableOpacity>
+
         </View>
 
         <View style={[styles.divider, { backgroundColor: colors.divider }]} />
@@ -123,7 +140,7 @@ export default function CustomizationScreen() {
             Customize the background of your application
           </Text>
           
-          {theme.backgroundImage ? (
+          {selectedBackgroundImage ? (
             <View style={styles.imagePreview}>
               <Text style={[styles.imagePreviewText, { color: colors.textSecondary }]}>
                 Background image is set
@@ -153,7 +170,7 @@ export default function CustomizationScreen() {
           >
             <Upload size={20} color={colors.primary} />
             <Text style={[styles.buttonTextSecondary, { color: colors.text, marginLeft: 8 }]}>
-              {theme.backgroundImage ? "Change Background Image" : "Upload Background Image"}
+              {selectedBackgroundImage ? "Change Background Image" : "Upload Background Image"}
             </Text>
           </TouchableOpacity>
           
@@ -246,6 +263,22 @@ export default function CustomizationScreen() {
             </View>
           </View>
         </View>
+
+        <TouchableOpacity
+          style={[
+            styles.saveButton,
+            { 
+              backgroundColor: hasUnsavedChanges ? colors.primary : colors.border,
+            }
+          ]}
+          onPress={handleSaveAllChanges}
+          disabled={!hasUnsavedChanges}
+        >
+          <Save size={20} color={colors.white} />
+          <Text style={[styles.saveButtonText, { color: colors.white }]}>
+            {hasUnsavedChanges ? "Save All Changes" : "No Changes to Save"}
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -399,5 +432,19 @@ const styles = StyleSheet.create({
   },
   previewTextSecondary: {
     fontSize: 12,
+  },
+  saveButton: {
+    borderRadius: 12,
+    padding: 18,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 8,
+    marginBottom: 32,
+  },
+  saveButtonText: {
+    fontSize: 18,
+    fontWeight: "700" as const,
   },
 });
