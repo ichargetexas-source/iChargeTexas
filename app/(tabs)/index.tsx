@@ -37,7 +37,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { requests } = useService();
   const { isAuthenticated, user } = useAuth();
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
 
   const { language, changeLanguage } = useLanguage();
   const t = translations[language] || translations.en;
@@ -130,7 +130,7 @@ export default function HomeScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.camoBackground, { backgroundColor: colors.background }]}>
         <ImageBackground
-          source={{ uri: "https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qk0o9iz3d1u2fd4x94ud3" }}
+          source={theme.backgroundImage ? { uri: theme.backgroundImage } : { uri: "https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qk0o9iz3d1u2fd4x94ud3" }}
           style={styles.robotBackground}
           imageStyle={styles.robotImage}
           resizeMode="contain"
