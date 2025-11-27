@@ -181,12 +181,24 @@ export interface ThemeSettings {
   businessName: string;
   backgroundImage: string | null;
   colorScheme: ColorScheme;
+  customIcons: {
+    roadsideButton: string | null;
+    chargingButton: string | null;
+    locationButton: string | null;
+    submitButton: string | null;
+  };
 }
 
 const DEFAULT_THEME: ThemeSettings = {
   businessName: "Your Business Name Here",
   backgroundImage: null,
   colorScheme: COLOR_SCHEMES[0],
+  customIcons: {
+    roadsideButton: null,
+    chargingButton: null,
+    locationButton: null,
+    submitButton: null,
+  },
 };
 
 export const [ThemeContext, useTheme] = createContextHook(() => {
@@ -231,6 +243,11 @@ export const [ThemeContext, useTheme] = createContextHook(() => {
   const setColorScheme = useCallback(async (scheme: ColorScheme) => {
     await setTheme({ colorScheme: scheme });
   }, [setTheme]);
+
+  const setCustomIcon = useCallback(async (iconKey: keyof ThemeSettings['customIcons'], iconUri: string | null) => {
+    const updatedIcons = { ...theme.customIcons, [iconKey]: iconUri };
+    await setTheme({ customIcons: updatedIcons });
+  }, [setTheme, theme.customIcons]);
 
   const getComplementaryColor = useCallback((hexColor: string): string => {
     const hex = hexColor.replace('#', '');
@@ -339,7 +356,8 @@ export const [ThemeContext, useTheme] = createContextHook(() => {
       setBackgroundImage,
       setColorScheme,
       setTheme,
+      setCustomIcon,
     }),
-    [theme, colors, isLoading, setBusinessName, setBackgroundImage, setColorScheme, setTheme]
+    [theme, colors, isLoading, setBusinessName, setBackgroundImage, setColorScheme, setTheme, setCustomIcon]
   );
 });

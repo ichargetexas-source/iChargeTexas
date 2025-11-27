@@ -1,6 +1,7 @@
 import { useService } from "@/constants/serviceContext";
 import colors from "@/constants/colors";
 import { ServiceType } from "@/constants/types";
+import { useTheme } from "@/constants/themeContext";
 import { roadsideServices, isAfterHours, calculateServicePrice } from "@/constants/serviceData";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Location from "expo-location";
@@ -30,6 +31,7 @@ export default function RequestScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ type?: string; latitude?: string; longitude?: string; address?: string }>();
   const { addRequest, requests } = useService();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   
   const [serviceType, setServiceType] = useState<ServiceType>(
@@ -983,11 +985,19 @@ export default function RequestScreen() {
             styles.submitButton,
             serviceType === "charging" && styles.submitButtonCharging,
           ]} onPress={handleSubmit}>
-            <Image
-              source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
-              style={styles.mascotButtonIcon}
-              resizeMode="contain"
-            />
+            {theme.customIcons.submitButton ? (
+              <Image
+                source={{ uri: theme.customIcons.submitButton }}
+                style={styles.mascotButtonIcon}
+                resizeMode="contain"
+              />
+            ) : (
+              <Image
+                source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                style={styles.mascotButtonIcon}
+                resizeMode="contain"
+              />
+            )}
             <View style={styles.submitButtonContent}>
               <Send color={colors.white} size={20} />
               <Text style={styles.submitButtonText}>Submit Request</Text>

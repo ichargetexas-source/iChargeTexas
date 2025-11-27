@@ -12,13 +12,14 @@ import {
 } from "react-native";
 import { useTheme, COLOR_SCHEMES } from "@/constants/themeContext";
 import * as ImagePicker from "expo-image-picker";
-import { Check, Upload, Palette, Type, Image as ImageIcon, Save } from "lucide-react-native";
+import { Check, Upload, Palette, Type, Image as ImageIcon, Save, Truck, Zap, MapPin, Send, X } from "lucide-react-native";
 
 export default function CustomizationScreen() {
   const { theme, colors, setTheme } = useTheme();
   const [businessNameInput, setBusinessNameInput] = useState(theme.businessName);
   const [selectedSchemeId, setSelectedSchemeId] = useState(theme.colorScheme.id);
   const [selectedBackgroundImage, setSelectedBackgroundImage] = useState<string | null>(theme.backgroundImage);
+  const [selectedIcons, setSelectedIcons] = useState(theme.customIcons);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
 
@@ -129,6 +130,7 @@ export default function CustomizationScreen() {
         businessName: businessNameInput.trim(),
         backgroundImage: selectedBackgroundImage,
         colorScheme: selectedScheme,
+        customIcons: selectedIcons,
       });
       setHasUnsavedChanges(false);
       Alert.alert("Success", "All changes saved successfully!");
@@ -220,6 +222,214 @@ export default function CustomizationScreen() {
               Note: Image upload is not available on web
             </Text>
           )}
+        </View>
+
+        <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <ImageIcon size={24} color={colors.primary} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Button Icons
+            </Text>
+          </View>
+          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
+            Customize icons for service buttons
+          </Text>
+          
+          <View style={styles.iconsList}>
+            <View style={[styles.iconItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.iconItemHeader}>
+                <Truck size={20} color={colors.roadside} />
+                <Text style={[styles.iconItemLabel, { color: colors.text }]}>Roadside Assistance Button</Text>
+              </View>
+              <View style={styles.iconActions}>
+                <TouchableOpacity
+                  style={[styles.iconButton, { backgroundColor: colors.primary }]}
+                  onPress={async () => {
+                    if (Platform.OS === 'web') {
+                      Alert.alert("Not Available", "Image upload is not available on web.");
+                      return;
+                    }
+                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                    if (status !== 'granted') {
+                      Alert.alert("Permission Required", "Photo library access is required.");
+                      return;
+                    }
+                    const result = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ["images"],
+                      allowsEditing: true,
+                      aspect: [1, 1],
+                      quality: 1,
+                    });
+                    if (!result.canceled && result.assets[0]) {
+                      setSelectedIcons({ ...selectedIcons, roadsideButton: result.assets[0].uri });
+                      setHasUnsavedChanges(true);
+                    }
+                  }}
+                >
+                  <Upload size={16} color={colors.white} />
+                  <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
+                </TouchableOpacity>
+                {selectedIcons.roadsideButton && (
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: colors.error }]}
+                    onPress={() => {
+                      setSelectedIcons({ ...selectedIcons, roadsideButton: null });
+                      setHasUnsavedChanges(true);
+                    }}
+                  >
+                    <X size={16} color={colors.white} />
+                    <Text style={[styles.iconButtonText, { color: colors.white }]}>Remove</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <View style={[styles.iconItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.iconItemHeader}>
+                <Zap size={20} color={colors.charging} />
+                <Text style={[styles.iconItemLabel, { color: colors.text }]}>Schedule Charging Button</Text>
+              </View>
+              <View style={styles.iconActions}>
+                <TouchableOpacity
+                  style={[styles.iconButton, { backgroundColor: colors.primary }]}
+                  onPress={async () => {
+                    if (Platform.OS === 'web') {
+                      Alert.alert("Not Available", "Image upload is not available on web.");
+                      return;
+                    }
+                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                    if (status !== 'granted') {
+                      Alert.alert("Permission Required", "Photo library access is required.");
+                      return;
+                    }
+                    const result = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ["images"],
+                      allowsEditing: true,
+                      aspect: [1, 1],
+                      quality: 1,
+                    });
+                    if (!result.canceled && result.assets[0]) {
+                      setSelectedIcons({ ...selectedIcons, chargingButton: result.assets[0].uri });
+                      setHasUnsavedChanges(true);
+                    }
+                  }}
+                >
+                  <Upload size={16} color={colors.white} />
+                  <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
+                </TouchableOpacity>
+                {selectedIcons.chargingButton && (
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: colors.error }]}
+                    onPress={() => {
+                      setSelectedIcons({ ...selectedIcons, chargingButton: null });
+                      setHasUnsavedChanges(true);
+                    }}
+                  >
+                    <X size={16} color={colors.white} />
+                    <Text style={[styles.iconButtonText, { color: colors.white }]}>Remove</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <View style={[styles.iconItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.iconItemHeader}>
+                <MapPin size={20} color={colors.primary} />
+                <Text style={[styles.iconItemLabel, { color: colors.text }]}>Is Service at Location Button</Text>
+              </View>
+              <View style={styles.iconActions}>
+                <TouchableOpacity
+                  style={[styles.iconButton, { backgroundColor: colors.primary }]}
+                  onPress={async () => {
+                    if (Platform.OS === 'web') {
+                      Alert.alert("Not Available", "Image upload is not available on web.");
+                      return;
+                    }
+                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                    if (status !== 'granted') {
+                      Alert.alert("Permission Required", "Photo library access is required.");
+                      return;
+                    }
+                    const result = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ["images"],
+                      allowsEditing: true,
+                      aspect: [1, 1],
+                      quality: 1,
+                    });
+                    if (!result.canceled && result.assets[0]) {
+                      setSelectedIcons({ ...selectedIcons, locationButton: result.assets[0].uri });
+                      setHasUnsavedChanges(true);
+                    }
+                  }}
+                >
+                  <Upload size={16} color={colors.white} />
+                  <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
+                </TouchableOpacity>
+                {selectedIcons.locationButton && (
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: colors.error }]}
+                    onPress={() => {
+                      setSelectedIcons({ ...selectedIcons, locationButton: null });
+                      setHasUnsavedChanges(true);
+                    }}
+                  >
+                    <X size={16} color={colors.white} />
+                    <Text style={[styles.iconButtonText, { color: colors.white }]}>Remove</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <View style={[styles.iconItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.iconItemHeader}>
+                <Send size={20} color={colors.primary} />
+                <Text style={[styles.iconItemLabel, { color: colors.text }]}>Submit Request Button</Text>
+              </View>
+              <View style={styles.iconActions}>
+                <TouchableOpacity
+                  style={[styles.iconButton, { backgroundColor: colors.primary }]}
+                  onPress={async () => {
+                    if (Platform.OS === 'web') {
+                      Alert.alert("Not Available", "Image upload is not available on web.");
+                      return;
+                    }
+                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                    if (status !== 'granted') {
+                      Alert.alert("Permission Required", "Photo library access is required.");
+                      return;
+                    }
+                    const result = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ["images"],
+                      allowsEditing: true,
+                      aspect: [1, 1],
+                      quality: 1,
+                    });
+                    if (!result.canceled && result.assets[0]) {
+                      setSelectedIcons({ ...selectedIcons, submitButton: result.assets[0].uri });
+                      setHasUnsavedChanges(true);
+                    }
+                  }}
+                >
+                  <Upload size={16} color={colors.white} />
+                  <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
+                </TouchableOpacity>
+                {selectedIcons.submitButton && (
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: colors.error }]}
+                    onPress={() => {
+                      setSelectedIcons({ ...selectedIcons, submitButton: null });
+                      setHasUnsavedChanges(true);
+                    }}
+                  >
+                    <X size={16} color={colors.white} />
+                    <Text style={[styles.iconButtonText, { color: colors.white }]}>Remove</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </View>
         </View>
 
         <View style={[styles.divider, { backgroundColor: colors.divider }]} />
@@ -487,5 +697,40 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 18,
     fontWeight: "700" as const,
+  },
+  iconsList: {
+    gap: 12,
+  },
+  iconItem: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    gap: 12,
+  },
+  iconItemHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  iconItemLabel: {
+    fontSize: 15,
+    fontWeight: "600" as const,
+    flex: 1,
+  },
+  iconActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  iconButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+  iconButtonText: {
+    fontSize: 13,
+    fontWeight: "600" as const,
   },
 });
