@@ -184,7 +184,7 @@ export interface ThemeSettings {
 }
 
 const DEFAULT_THEME: ThemeSettings = {
-  businessName: "iChargeTexas",
+  businessName: "Your Business Name Here",
   backgroundImage: null,
   colorScheme: COLOR_SCHEMES[0],
 };

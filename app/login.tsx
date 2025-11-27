@@ -15,6 +15,7 @@ import { useAuth } from "@/constants/authContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Lock, User, ArrowLeft } from "lucide-react-native";
 import colors from "@/constants/colors";
+import { useTheme } from "@/constants/themeContext";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -62,7 +64,7 @@ export default function LoginPage() {
               <ArrowLeft size={24} color={colors.primary} />
             </TouchableOpacity>
             <View style={styles.header}>
-              <Text style={styles.title}>iCharge Texas</Text>
+              <Text style={styles.title}>{theme.businessName}</Text>
               <Text style={styles.subtitle}>Employee Login</Text>
             </View>
           </View>

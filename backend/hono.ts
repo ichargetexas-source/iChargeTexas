@@ -64,7 +64,7 @@ app.use(
 app.get("/", (c) => {
   return c.json({ 
     status: "ok", 
-    message: "iCharge Texas API is running",
+    message: "Service Management API is running",
     timestamp: new Date().toISOString(),
     version: "1.0.0"
   });

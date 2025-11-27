@@ -129,342 +129,672 @@ export default function HomeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.camoBackground, { backgroundColor: colors.background }]}>
-        <ImageBackground
-          source={theme.backgroundImage ? { uri: theme.backgroundImage } : { uri: "https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qk0o9iz3d1u2fd4x94ud3" }}
-          style={styles.robotBackground}
-          imageStyle={styles.robotImage}
-          resizeMode="contain"
-        >
-          <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.languageButtonsContainer}>
-            <TouchableOpacity
-              style={[
-                styles.languageButton,
-                { borderColor: colors.border },
-                language === "en" && [styles.languageButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
-              ]}
-              onPress={() => changeLanguage("en")}
+        {theme.backgroundImage ? (
+          <ImageBackground
+            source={{ uri: theme.backgroundImage }}
+            style={styles.robotBackground}
+            imageStyle={styles.robotImage}
+            resizeMode="contain"
+          >
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
             >
-              <Text
-                style={[
-                  styles.languageButtonText,
-                  { color: colors.textSecondary },
-                  language === "en" && [styles.languageButtonTextActive, { color: colors.white }],
-                ]}
-              >
-                English
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.languageButton,
-                { borderColor: colors.border },
-                language === "es" && [styles.languageButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
-              ]}
-              onPress={() => changeLanguage("es")}
-            >
-              <Text
-                style={[
-                  styles.languageButtonText,
-                  { color: colors.textSecondary },
-                  language === "es" && [styles.languageButtonTextActive, { color: colors.white }],
-                ]}
-              >
-                Spanish
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.header}>
-            <View>
-              <Text style={[styles.greeting, { color: colors.text }]}>{theme.businessName}</Text>
-              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t.subtitle}</Text>
-            </View>
-          </View>
-
-          {pendingRequests.length > 0 && (
-            <View style={[styles.queueCounter, { borderColor: colors.primary }]}>
-              <View style={styles.queueCounterContent}>
-                <View style={[styles.queueBadge, { backgroundColor: colors.primary }]}>
-                  <Text style={[styles.queueNumber, { color: colors.white }]}>{pendingRequests.length}</Text>
-                </View>
-                <View style={styles.queueInfo}>
-                  <Text style={[styles.queueTitle, { color: colors.text }]}>{t.serviceQueue}</Text>
-                  <Text style={[styles.queueSubtitle, { color: colors.textSecondary }]}>
-                    {pendingRequests.length === 1 ? `1 ${t.requestInQueue}` : `${pendingRequests.length} ${t.requestsInQueue}`}
+              <View style={styles.languageButtonsContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.languageButton,
+                    { borderColor: colors.border },
+                    language === "en" && [styles.languageButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
+                  ]}
+                  onPress={() => changeLanguage("en")}
+                >
+                  <Text
+                    style={[
+                      styles.languageButtonText,
+                      { color: colors.textSecondary },
+                      language === "en" && [styles.languageButtonTextActive, { color: colors.white }],
+                    ]}
+                  >
+                    English
                   </Text>
-                </View>
-              </View>
-            </View>
-          )}
-
-          <View style={styles.locationCard}>
-            <View style={styles.locationHeader}>
-              <MapPin color={colors.primary} size={20} />
-              <Text style={[styles.locationTitle, { color: colors.text }]}>{t.currentLocation}</Text>
-            </View>
-            
-            {isLoadingLocation && (
-              <View style={styles.locationLoading}>
-                <ActivityIndicator color={colors.primary} size="small" />
-                <Text style={[styles.locationLoadingText, { color: colors.textSecondary }]}>
-                  {t.gettingLocation}
-                </Text>
-              </View>
-            )}
-
-            {locationError && !isLoadingLocation && (
-              <View style={[styles.locationErrorContainer, { backgroundColor: colors.error + "15", borderColor: colors.error }]}>
-                <View style={styles.locationErrorHeader}>
-                  <AlertCircle color={colors.error} size={20} />
-                  <Text style={[styles.locationErrorTitle, { color: colors.error }]}>{t.locationRequired}</Text>
-                </View>
-                <Text style={[styles.locationErrorText, { color: colors.text }]}>
-                  {t.locationRequiredDesc}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.enableLocationButton, { backgroundColor: colors.error }]}
-                  onPress={async () => {
-                    if (Platform.OS === 'web') {
-                      Alert.alert(
-                        t.enableLocation,
-                        t.enableLocationWeb
-                      );
-                    } else {
-                      Alert.alert(
-                        t.enableLocation,
-                        t.enableLocationNative,
-                        [
-                          { text: t.cancel, style: "cancel" },
-                          {
-                            text: t.openSettings,
-                            onPress: () => {
-                              if (Platform.OS === 'ios') {
-                                Linking.openURL('app-settings:');
-                              } else {
-                                Linking.openSettings();
-                              }
-                            },
-                          },
-                        ]
-                      );
-                    }
-                  }}
-                >
-                  <Settings color={colors.white} size={16} />
-                  <Text style={[styles.enableLocationButtonText, { color: colors.white }]}>{t.enableLocation}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.retryButton}
-                  onPress={async () => {
-                    setIsLoadingLocation(true);
-                    try {
-                      const servicesEnabled = await Location.hasServicesEnabledAsync();
-                      if (!servicesEnabled) {
-                        setLocationError("Location services are disabled. Please enable them in Settings.");
-                        setIsLoadingLocation(false);
-                        return;
-                      }
-
-                      const { status } = await Location.requestForegroundPermissionsAsync();
-                      if (status === "granted") {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        
-                        const currentLocation = await Location.getCurrentPositionAsync({
-                          accuracy: Location.Accuracy.Balanced,
-                          timeInterval: 10000,
-                          distanceInterval: 0,
-                        });
-                        setLocation(currentLocation);
-                        setLocationError(null);
-                      } else {
-                        setLocationError("Location permission denied. Please enable in Settings.");
-                      }
-                    } catch (error: any) {
-                      console.error("Error getting location:", error);
-                      const errorMessage = error?.message || "Unable to get location";
-                      
-                      if (errorMessage.includes("kCLErrorDomain") || errorMessage.includes("location")) {
-                        setLocationError("Cannot access location. Please check that Location Services are enabled in Settings > Privacy > Location Services.");
-                      } else {
-                        setLocationError("Unable to get location. Please try again.");
-                      }
-                    } finally {
-                      setIsLoadingLocation(false);
-                    }
-                  }}
+                  style={[
+                    styles.languageButton,
+                    { borderColor: colors.border },
+                    language === "es" && [styles.languageButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
+                  ]}
+                  onPress={() => changeLanguage("es")}
                 >
-                  <Text style={[styles.retryButtonText, { color: colors.error }]}>{t.tryAgain}</Text>
+                  <Text
+                    style={[
+                      styles.languageButtonText,
+                      { color: colors.textSecondary },
+                      language === "es" && [styles.languageButtonTextActive, { color: colors.white }],
+                    ]}
+                  >
+                    Spanish
+                  </Text>
                 </TouchableOpacity>
               </View>
-            )}
 
-            {location && !isLoadingLocation && (
-              <View style={styles.locationInfo}>
-                <View style={[styles.addressInputContainer, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                  <Text style={[styles.addressLabel, { color: colors.textSecondary }]}>Service Address</Text>
-                  <TextInput
-                    style={[styles.addressInput, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]}
-                    value={address}
-                    onChangeText={setAddress}
-                    placeholder="Enter service address (optional)"
-                    placeholderTextColor={colors.textTertiary}
-                    multiline
-                  />
+              <View style={styles.header}>
+                <View>
+                  <Text style={[styles.greeting, { color: colors.text }]}>{theme.businessName}</Text>
+                  <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t.subtitle}</Text>
                 </View>
-                <View style={[styles.coordinatesBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                  <Text style={[styles.coordinatesTitle, { color: colors.textSecondary }]}>GPS Coordinates</Text>
-                  <View style={styles.coordinateRow}>
-                    <Text style={[styles.coordinateLabel, { color: colors.textSecondary }]}>{t.latitude}</Text>
-                    <Text style={[styles.coordinateValue, { color: colors.text }]}>
-                      {location.coords.latitude.toFixed(6)}°
-                    </Text>
+              </View>
+
+              {pendingRequests.length > 0 && (
+                <View style={[styles.queueCounter, { borderColor: colors.primary }]}>
+                  <View style={styles.queueCounterContent}>
+                    <View style={[styles.queueBadge, { backgroundColor: colors.primary }]}>
+                      <Text style={[styles.queueNumber, { color: colors.white }]}>{pendingRequests.length}</Text>
+                    </View>
+                    <View style={styles.queueInfo}>
+                      <Text style={[styles.queueTitle, { color: colors.text }]}>{t.serviceQueue}</Text>
+                      <Text style={[styles.queueSubtitle, { color: colors.textSecondary }]}>
+                        {pendingRequests.length === 1 ? `1 ${t.requestInQueue}` : `${pendingRequests.length} ${t.requestsInQueue}`}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.coordinateRow}>
-                    <Text style={[styles.coordinateLabel, { color: colors.textSecondary }]}>{t.longitude}</Text>
-                    <Text style={[styles.coordinateValue, { color: colors.text }]}>
-                      {location.coords.longitude.toFixed(6)}°
-                    </Text>
-                  </View>
-                  {location.coords.accuracy && (
-                    <Text style={[styles.accuracyText, { color: colors.textTertiary }]}>
-                      {t.accuracy} ±{Math.round(location.coords.accuracy)}m
-                    </Text>
-                  )}
+                </View>
+              )}
+
+              <View style={styles.locationCard}>
+                <View style={styles.locationHeader}>
+                  <MapPin color={colors.primary} size={20} />
+                  <Text style={[styles.locationTitle, { color: colors.text }]}>{t.currentLocation}</Text>
                 </View>
                 
-                <View style={styles.locationActions}>
-                  <TouchableOpacity
-                    style={[styles.copyButton, { backgroundColor: colors.background, borderColor: colors.primary }]}
-                    onPress={copyCoordinates}
-                  >
-                    <Copy color={colors.primary} size={16} />
-                    <Text style={[styles.copyButtonText, { color: colors.primary }]}>
-                      {copied ? t.copied : t.copy}
+                {isLoadingLocation && (
+                  <View style={styles.locationLoading}>
+                    <ActivityIndicator color={colors.primary} size="small" />
+                    <Text style={[styles.locationLoadingText, { color: colors.textSecondary }]}>
+                      {t.gettingLocation}
                     </Text>
-                  </TouchableOpacity>
-                  
+                  </View>
+                )}
+
+                {locationError && !isLoadingLocation && (
+                  <View style={[styles.locationErrorContainer, { backgroundColor: colors.error + "15", borderColor: colors.error }]}>
+                    <View style={styles.locationErrorHeader}>
+                      <AlertCircle color={colors.error} size={20} />
+                      <Text style={[styles.locationErrorTitle, { color: colors.error }]}>{t.locationRequired}</Text>
+                    </View>
+                    <Text style={[styles.locationErrorText, { color: colors.text }]}>
+                      {t.locationRequiredDesc}
+                    </Text>
+                    <TouchableOpacity
+                      style={[styles.enableLocationButton, { backgroundColor: colors.error }]}
+                      onPress={async () => {
+                        if (Platform.OS === 'web') {
+                          Alert.alert(
+                            t.enableLocation,
+                            t.enableLocationWeb
+                          );
+                        } else {
+                          Alert.alert(
+                            t.enableLocation,
+                            t.enableLocationNative,
+                            [
+                              { text: t.cancel, style: "cancel" },
+                              {
+                                text: t.openSettings,
+                                onPress: () => {
+                                  if (Platform.OS === 'ios') {
+                                    Linking.openURL('app-settings:');
+                                  } else {
+                                    Linking.openSettings();
+                                  }
+                                },
+                              },
+                            ]
+                          );
+                        }
+                      }}
+                    >
+                      <Settings color={colors.white} size={16} />
+                      <Text style={[styles.enableLocationButtonText, { color: colors.white }]}>{t.enableLocation}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.retryButton}
+                      onPress={async () => {
+                        setIsLoadingLocation(true);
+                        try {
+                          const servicesEnabled = await Location.hasServicesEnabledAsync();
+                          if (!servicesEnabled) {
+                            setLocationError("Location services are disabled. Please enable them in Settings.");
+                            setIsLoadingLocation(false);
+                            return;
+                          }
+
+                          const { status } = await Location.requestForegroundPermissionsAsync();
+                          if (status === "granted") {
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            
+                            const currentLocation = await Location.getCurrentPositionAsync({
+                              accuracy: Location.Accuracy.Balanced,
+                              timeInterval: 10000,
+                              distanceInterval: 0,
+                            });
+                            setLocation(currentLocation);
+                            setLocationError(null);
+                          } else {
+                            setLocationError("Location permission denied. Please enable in Settings.");
+                          }
+                        } catch (error: any) {
+                          console.error("Error getting location:", error);
+                          const errorMessage = error?.message || "Unable to get location";
+                          
+                          if (errorMessage.includes("kCLErrorDomain") || errorMessage.includes("location")) {
+                            setLocationError("Cannot access location. Please check that Location Services are enabled in Settings > Privacy > Location Services.");
+                          } else {
+                            setLocationError("Unable to get location. Please try again.");
+                          }
+                        } finally {
+                          setIsLoadingLocation(false);
+                        }
+                      }}
+                    >
+                      <Text style={[styles.retryButtonText, { color: colors.error }]}>{t.tryAgain}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {location && !isLoadingLocation && (
+                  <View style={styles.locationInfo}>
+                    <View style={[styles.addressInputContainer, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                      <Text style={[styles.addressLabel, { color: colors.textSecondary }]}>Service Address</Text>
+                      <TextInput
+                        style={[styles.addressInput, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]}
+                        value={address}
+                        onChangeText={setAddress}
+                        placeholder="Enter service address (optional)"
+                        placeholderTextColor={colors.textTertiary}
+                        multiline
+                      />
+                    </View>
+                    <View style={[styles.coordinatesBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                      <Text style={[styles.coordinatesTitle, { color: colors.textSecondary }]}>GPS Coordinates</Text>
+                      <View style={styles.coordinateRow}>
+                        <Text style={[styles.coordinateLabel, { color: colors.textSecondary }]}>{t.latitude}</Text>
+                        <Text style={[styles.coordinateValue, { color: colors.text }]}>
+                          {location.coords.latitude.toFixed(6)}°
+                        </Text>
+                      </View>
+                      <View style={styles.coordinateRow}>
+                        <Text style={[styles.coordinateLabel, { color: colors.textSecondary }]}>{t.longitude}</Text>
+                        <Text style={[styles.coordinateValue, { color: colors.text }]}>
+                          {location.coords.longitude.toFixed(6)}°
+                        </Text>
+                      </View>
+                      {location.coords.accuracy && (
+                        <Text style={[styles.accuracyText, { color: colors.textTertiary }]}>
+                          {t.accuracy} ±{Math.round(location.coords.accuracy)}m
+                        </Text>
+                      )}
+                    </View>
+                    
+                    <View style={styles.locationActions}>
+                      <TouchableOpacity
+                        style={[styles.copyButton, { backgroundColor: colors.background, borderColor: colors.primary }]}
+                        onPress={copyCoordinates}
+                      >
+                        <Copy color={colors.primary} size={16} />
+                        <Text style={[styles.copyButtonText, { color: colors.primary }]}>
+                          {copied ? t.copied : t.copy}
+                        </Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity
+                        style={[styles.useLocationButton, { backgroundColor: colors.primary }]}
+                        onPress={useThisLocation}
+                      >
+                        <Image
+                          source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                          style={styles.mascotSmallIcon}
+                          resizeMode="contain"
+                        />
+                        <Text style={[styles.useLocationButtonText, { color: colors.white }]}>
+                          {t.isServiceAtLocation}
+                        </Text>
+                        <ArrowRight color={colors.white} size={16} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.servicesSection}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.services}</Text>
+                <View style={styles.serviceCards}>
                   <TouchableOpacity
-                    style={[styles.useLocationButton, { backgroundColor: colors.primary }]}
-                    onPress={useThisLocation}
+                    style={[styles.serviceCard, { backgroundColor: colors.roadside }]}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(tabs)/request",
+                        params: { type: "roadside" },
+                      })
+                    }
                   >
+                    <View style={styles.serviceContent}>
+                      <View style={styles.serviceIconContainer}>
+                        <Truck color={colors.white} size={32} />
+                      </View>
+                      <Text style={[styles.serviceTitle, { color: colors.white }]}>{t.roadsideAssistance}</Text>
+                      <Text style={[styles.serviceDescription, { color: colors.white }]}>
+                        {t.roadsideDesc}
+                      </Text>
+                    </View>
                     <Image
                       source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
-                      style={styles.mascotSmallIcon}
+                      style={styles.mascotImage}
                       resizeMode="contain"
                     />
-                    <Text style={[styles.useLocationButtonText, { color: colors.white }]}>
-                      {t.isServiceAtLocation}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.serviceCard, { backgroundColor: colors.charging }]}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(tabs)/request",
+                        params: { type: "charging" },
+                      })
+                    }
+                  >
+                    <View style={styles.serviceContent}>
+                      <View style={styles.serviceIconContainer}>
+                        <Zap color={colors.white} size={36} />
+                      </View>
+                      <Text style={[styles.serviceTitle, { color: colors.white }]}>{t.scheduledCharging}</Text>
+                      <Text style={[styles.serviceDescription, { color: colors.white }]}>
+                        {t.scheduledChargingDesc}
+                      </Text>
+                    </View>
+                    <Image
+                      source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                      style={styles.mascotImage}
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {pendingRequests.length > 0 && (
+                <View style={styles.activeSection}>
+                  <View style={styles.activeSectionHeader}>
+                    <Navigation color={colors.primary} size={20} />
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.activeRequests}</Text>
+                  </View>
+                  <View style={[styles.activeCard, { borderColor: colors.primary }]}>
+                    <Text style={[styles.activeCount, { color: colors.primary }]}>{pendingRequests.length}</Text>
+                    <Text style={[styles.activeLabel, { color: colors.textSecondary }]}>
+                      {pendingRequests.length === 1
+                        ? t.requestPending
+                        : t.requestsPending}
                     </Text>
-                    <ArrowRight color={colors.white} size={16} />
+                    <TouchableOpacity
+                      style={[styles.viewButton, { backgroundColor: colors.primary }]}
+                      onPress={() => router.push("/(tabs)/history")}
+                    >
+                      <Text style={[styles.viewButtonText, { color: colors.white }]}>{t.viewAll}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+
+              {!isAuthenticated && (
+                <TouchableOpacity
+                  style={[styles.employeeLoginButton, { borderColor: colors.border }]}
+                  onPress={() => router.push("/login")}
+                >
+                  <Text style={[styles.employeeLoginText, { color: colors.textSecondary }]}>Employee Login</Text>
+                </TouchableOpacity>
+              )}
+
+              {isAuthenticated && user && (
+                <View style={[styles.employeeInfoCard, { borderColor: colors.primary }]}>
+                  <Text style={[styles.employeeInfoTitle, { color: colors.textSecondary }]}>Logged in as:</Text>
+                  <Text style={[styles.employeeInfoName, { color: colors.text }]}>{user.fullName}</Text>
+                  <Text style={[styles.employeeInfoRole, { color: colors.primary }]}>{user.role.replace('_', ' ').toUpperCase()}</Text>
+                </View>
+              )}
+            </ScrollView>
+          </ImageBackground>
+        ) : (
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.languageButtonsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.languageButton,
+                  { borderColor: colors.border },
+                  language === "en" && [styles.languageButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
+                ]}
+                onPress={() => changeLanguage("en")}
+              >
+                <Text
+                  style={[
+                    styles.languageButtonText,
+                    { color: colors.textSecondary },
+                    language === "en" && [styles.languageButtonTextActive, { color: colors.white }],
+                  ]}
+                >
+                  English
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.languageButton,
+                  { borderColor: colors.border },
+                  language === "es" && [styles.languageButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
+                ]}
+                onPress={() => changeLanguage("es")}
+              >
+                <Text
+                  style={[
+                    styles.languageButtonText,
+                    { color: colors.textSecondary },
+                    language === "es" && [styles.languageButtonTextActive, { color: colors.white }],
+                  ]}
+                >
+                  Spanish
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.header}>
+              <View>
+                <Text style={[styles.greeting, { color: colors.text }]}>{theme.businessName}</Text>
+                <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t.subtitle}</Text>
+              </View>
+            </View>
+
+            {pendingRequests.length > 0 && (
+              <View style={[styles.queueCounter, { borderColor: colors.primary }]}>
+                <View style={styles.queueCounterContent}>
+                  <View style={[styles.queueBadge, { backgroundColor: colors.primary }]}>
+                    <Text style={[styles.queueNumber, { color: colors.white }]}>{pendingRequests.length}</Text>
+                  </View>
+                  <View style={styles.queueInfo}>
+                    <Text style={[styles.queueTitle, { color: colors.text }]}>{t.serviceQueue}</Text>
+                    <Text style={[styles.queueSubtitle, { color: colors.textSecondary }]}>
+                      {pendingRequests.length === 1 ? `1 ${t.requestInQueue}` : `${pendingRequests.length} ${t.requestsInQueue}`}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            <View style={styles.locationCard}>
+              <View style={styles.locationHeader}>
+                <MapPin color={colors.primary} size={20} />
+                <Text style={[styles.locationTitle, { color: colors.text }]}>{t.currentLocation}</Text>
+              </View>
+              
+              {isLoadingLocation && (
+                <View style={styles.locationLoading}>
+                  <ActivityIndicator color={colors.primary} size="small" />
+                  <Text style={[styles.locationLoadingText, { color: colors.textSecondary }]}>
+                    {t.gettingLocation}
+                  </Text>
+                </View>
+              )}
+
+              {locationError && !isLoadingLocation && (
+                <View style={[styles.locationErrorContainer, { backgroundColor: colors.error + "15", borderColor: colors.error }]}>
+                  <View style={styles.locationErrorHeader}>
+                    <AlertCircle color={colors.error} size={20} />
+                    <Text style={[styles.locationErrorTitle, { color: colors.error }]}>{t.locationRequired}</Text>
+                  </View>
+                  <Text style={[styles.locationErrorText, { color: colors.text }]}>
+                    {t.locationRequiredDesc}
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.enableLocationButton, { backgroundColor: colors.error }]}
+                    onPress={async () => {
+                      if (Platform.OS === 'web') {
+                        Alert.alert(
+                          t.enableLocation,
+                          t.enableLocationWeb
+                        );
+                      } else {
+                        Alert.alert(
+                          t.enableLocation,
+                          t.enableLocationNative,
+                          [
+                            { text: t.cancel, style: "cancel" },
+                            {
+                              text: t.openSettings,
+                              onPress: () => {
+                                if (Platform.OS === 'ios') {
+                                  Linking.openURL('app-settings:');
+                                } else {
+                                  Linking.openSettings();
+                                }
+                              },
+                            },
+                          ]
+                        );
+                      }
+                    }}
+                  >
+                    <Settings color={colors.white} size={16} />
+                    <Text style={[styles.enableLocationButtonText, { color: colors.white }]}>{t.enableLocation}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={async () => {
+                      setIsLoadingLocation(true);
+                      try {
+                        const servicesEnabled = await Location.hasServicesEnabledAsync();
+                        if (!servicesEnabled) {
+                          setLocationError("Location services are disabled. Please enable them in Settings.");
+                          setIsLoadingLocation(false);
+                          return;
+                        }
+
+                        const { status } = await Location.requestForegroundPermissionsAsync();
+                        if (status === "granted") {
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                          
+                          const currentLocation = await Location.getCurrentPositionAsync({
+                            accuracy: Location.Accuracy.Balanced,
+                            timeInterval: 10000,
+                            distanceInterval: 0,
+                          });
+                          setLocation(currentLocation);
+                          setLocationError(null);
+                        } else {
+                          setLocationError("Location permission denied. Please enable in Settings.");
+                        }
+                      } catch (error: any) {
+                        console.error("Error getting location:", error);
+                        const errorMessage = error?.message || "Unable to get location";
+                        
+                        if (errorMessage.includes("kCLErrorDomain") || errorMessage.includes("location")) {
+                          setLocationError("Cannot access location. Please check that Location Services are enabled in Settings > Privacy > Location Services.");
+                        } else {
+                          setLocationError("Unable to get location. Please try again.");
+                        }
+                      } finally {
+                        setIsLoadingLocation(false);
+                      }
+                    }}
+                  >
+                    <Text style={[styles.retryButtonText, { color: colors.error }]}>{t.tryAgain}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {location && !isLoadingLocation && (
+                <View style={styles.locationInfo}>
+                  <View style={[styles.addressInputContainer, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    <Text style={[styles.addressLabel, { color: colors.textSecondary }]}>Service Address</Text>
+                    <TextInput
+                      style={[styles.addressInput, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]}
+                      value={address}
+                      onChangeText={setAddress}
+                      placeholder="Enter service address (optional)"
+                      placeholderTextColor={colors.textTertiary}
+                      multiline
+                    />
+                  </View>
+                  <View style={[styles.coordinatesBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    <Text style={[styles.coordinatesTitle, { color: colors.textSecondary }]}>GPS Coordinates</Text>
+                    <View style={styles.coordinateRow}>
+                      <Text style={[styles.coordinateLabel, { color: colors.textSecondary }]}>{t.latitude}</Text>
+                      <Text style={[styles.coordinateValue, { color: colors.text }]}>
+                        {location.coords.latitude.toFixed(6)}°
+                      </Text>
+                    </View>
+                    <View style={styles.coordinateRow}>
+                      <Text style={[styles.coordinateLabel, { color: colors.textSecondary }]}>{t.longitude}</Text>
+                      <Text style={[styles.coordinateValue, { color: colors.text }]}>
+                        {location.coords.longitude.toFixed(6)}°
+                      </Text>
+                    </View>
+                    {location.coords.accuracy && (
+                      <Text style={[styles.accuracyText, { color: colors.textTertiary }]}>
+                        {t.accuracy} ±{Math.round(location.coords.accuracy)}m
+                      </Text>
+                    )}
+                  </View>
+                  
+                  <View style={styles.locationActions}>
+                    <TouchableOpacity
+                      style={[styles.copyButton, { backgroundColor: colors.background, borderColor: colors.primary }]}
+                      onPress={copyCoordinates}
+                    >
+                      <Copy color={colors.primary} size={16} />
+                      <Text style={[styles.copyButtonText, { color: colors.primary }]}>
+                        {copied ? t.copied : t.copy}
+                      </Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={[styles.useLocationButton, { backgroundColor: colors.primary }]}
+                      onPress={useThisLocation}
+                    >
+                      <Image
+                        source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                        style={styles.mascotSmallIcon}
+                        resizeMode="contain"
+                      />
+                      <Text style={[styles.useLocationButtonText, { color: colors.white }]}>
+                        {t.isServiceAtLocation}
+                      </Text>
+                      <ArrowRight color={colors.white} size={16} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.servicesSection}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.services}</Text>
+              <View style={styles.serviceCards}>
+                <TouchableOpacity
+                  style={[styles.serviceCard, { backgroundColor: colors.roadside }]}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(tabs)/request",
+                      params: { type: "roadside" },
+                    })
+                  }
+                >
+                  <View style={styles.serviceContent}>
+                    <View style={styles.serviceIconContainer}>
+                      <Truck color={colors.white} size={32} />
+                    </View>
+                    <Text style={[styles.serviceTitle, { color: colors.white }]}>{t.roadsideAssistance}</Text>
+                    <Text style={[styles.serviceDescription, { color: colors.white }]}>
+                      {t.roadsideDesc}
+                    </Text>
+                  </View>
+                  <Image
+                    source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                    style={styles.mascotImage}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.serviceCard, { backgroundColor: colors.charging }]}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(tabs)/request",
+                      params: { type: "charging" },
+                    })
+                  }
+                >
+                  <View style={styles.serviceContent}>
+                    <View style={styles.serviceIconContainer}>
+                      <Zap color={colors.white} size={36} />
+                    </View>
+                    <Text style={[styles.serviceTitle, { color: colors.white }]}>{t.scheduledCharging}</Text>
+                    <Text style={[styles.serviceDescription, { color: colors.white }]}>
+                      {t.scheduledChargingDesc}
+                    </Text>
+                  </View>
+                  <Image
+                    source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                    style={styles.mascotImage}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {pendingRequests.length > 0 && (
+              <View style={styles.activeSection}>
+                <View style={styles.activeSectionHeader}>
+                  <Navigation color={colors.primary} size={20} />
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.activeRequests}</Text>
+                </View>
+                <View style={[styles.activeCard, { borderColor: colors.primary }]}>
+                  <Text style={[styles.activeCount, { color: colors.primary }]}>{pendingRequests.length}</Text>
+                  <Text style={[styles.activeLabel, { color: colors.textSecondary }]}>
+                    {pendingRequests.length === 1
+                      ? t.requestPending
+                      : t.requestsPending}
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.viewButton, { backgroundColor: colors.primary }]}
+                    onPress={() => router.push("/(tabs)/history")}
+                  >
+                    <Text style={[styles.viewButtonText, { color: colors.white }]}>{t.viewAll}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             )}
-          </View>
 
-          <View style={styles.servicesSection}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.services}</Text>
-            <View style={styles.serviceCards}>
+
+            {!isAuthenticated && (
               <TouchableOpacity
-                style={[styles.serviceCard, { backgroundColor: colors.roadside }]}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(tabs)/request",
-                    params: { type: "roadside" },
-                  })
-                }
+                style={[styles.employeeLoginButton, { borderColor: colors.border }]}
+                onPress={() => router.push("/login")}
               >
-                <View style={styles.serviceContent}>
-                  <View style={styles.serviceIconContainer}>
-                    <Truck color={colors.white} size={32} />
-                  </View>
-                  <Text style={[styles.serviceTitle, { color: colors.white }]}>{t.roadsideAssistance}</Text>
-                  <Text style={[styles.serviceDescription, { color: colors.white }]}>
-                    {t.roadsideDesc}
-                  </Text>
-                </View>
-                <Image
-                  source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
-                  style={styles.mascotImage}
-                  resizeMode="contain"
-                />
+                <Text style={[styles.employeeLoginText, { color: colors.textSecondary }]}>Employee Login</Text>
               </TouchableOpacity>
+            )}
 
-              <TouchableOpacity
-                style={[styles.serviceCard, { backgroundColor: colors.charging }]}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(tabs)/request",
-                    params: { type: "charging" },
-                  })
-                }
-              >
-                <View style={styles.serviceContent}>
-                  <View style={styles.serviceIconContainer}>
-                    <Zap color={colors.white} size={36} />
-                  </View>
-                  <Text style={[styles.serviceTitle, { color: colors.white }]}>{t.scheduledCharging}</Text>
-                  <Text style={[styles.serviceDescription, { color: colors.white }]}>
-                    {t.scheduledChargingDesc}
-                  </Text>
-                </View>
-                <Image
-                  source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
-                  style={styles.mascotImage}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {pendingRequests.length > 0 && (
-            <View style={styles.activeSection}>
-              <View style={styles.activeSectionHeader}>
-                <Navigation color={colors.primary} size={20} />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.activeRequests}</Text>
+            {isAuthenticated && user && (
+              <View style={[styles.employeeInfoCard, { borderColor: colors.primary }]}>
+                <Text style={[styles.employeeInfoTitle, { color: colors.textSecondary }]}>Logged in as:</Text>
+                <Text style={[styles.employeeInfoName, { color: colors.text }]}>{user.fullName}</Text>
+                <Text style={[styles.employeeInfoRole, { color: colors.primary }]}>{user.role.replace('_', ' ').toUpperCase()}</Text>
               </View>
-              <View style={[styles.activeCard, { borderColor: colors.primary }]}>
-                <Text style={[styles.activeCount, { color: colors.primary }]}>{pendingRequests.length}</Text>
-                <Text style={[styles.activeLabel, { color: colors.textSecondary }]}>
-                  {pendingRequests.length === 1
-                    ? t.requestPending
-                    : t.requestsPending}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.viewButton, { backgroundColor: colors.primary }]}
-                  onPress={() => router.push("/(tabs)/history")}
-                >
-                  <Text style={[styles.viewButtonText, { color: colors.white }]}>{t.viewAll}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-
-          {!isAuthenticated && (
-            <TouchableOpacity
-              style={[styles.employeeLoginButton, { borderColor: colors.border }]}
-              onPress={() => router.push("/login")}
-            >
-              <Text style={[styles.employeeLoginText, { color: colors.textSecondary }]}>Employee Login</Text>
-            </TouchableOpacity>
-          )}
-
-          {isAuthenticated && user && (
-            <View style={[styles.employeeInfoCard, { borderColor: colors.primary }]}>
-              <Text style={[styles.employeeInfoTitle, { color: colors.textSecondary }]}>Logged in as:</Text>
-              <Text style={[styles.employeeInfoName, { color: colors.text }]}>{user.fullName}</Text>
-              <Text style={[styles.employeeInfoRole, { color: colors.primary }]}>{user.role.replace('_', ' ').toUpperCase()}</Text>
-            </View>
-          )}
-
+            )}
           </ScrollView>
-        </ImageBackground>
+        )}
       </View>
     </View>
   );
