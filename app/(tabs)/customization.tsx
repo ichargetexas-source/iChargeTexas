@@ -19,7 +19,12 @@ export default function CustomizationScreen() {
   const [businessNameInput, setBusinessNameInput] = useState(theme.businessName);
   const [selectedSchemeId, setSelectedSchemeId] = useState(theme.colorScheme.id);
   const [selectedBackgroundImage, setSelectedBackgroundImage] = useState<string | null>(theme.backgroundImage);
-  const [selectedIcons, setSelectedIcons] = useState(theme.customIcons);
+  const [selectedIcons, setSelectedIcons] = useState(theme.customIcons || {
+    roadsideButton: null,
+    chargingButton: null,
+    locationButton: null,
+    submitButton: null,
+  });
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
 
@@ -263,7 +268,13 @@ export default function CustomizationScreen() {
                       quality: 1,
                     });
                     if (!result.canceled && result.assets[0]) {
-                      setSelectedIcons({ ...selectedIcons, roadsideButton: result.assets[0].uri });
+                      const updatedIcons = {
+                        roadsideButton: result.assets[0].uri,
+                        chargingButton: selectedIcons?.chargingButton || null,
+                        locationButton: selectedIcons?.locationButton || null,
+                        submitButton: selectedIcons?.submitButton || null,
+                      };
+                      setSelectedIcons(updatedIcons);
                       setHasUnsavedChanges(true);
                     }
                   }}
@@ -271,11 +282,17 @@ export default function CustomizationScreen() {
                   <Upload size={16} color={colors.white} />
                   <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
                 </TouchableOpacity>
-                {selectedIcons.roadsideButton && (
+                {selectedIcons?.roadsideButton && (
                   <TouchableOpacity
                     style={[styles.iconButton, { backgroundColor: colors.error }]}
                     onPress={() => {
-                      setSelectedIcons({ ...selectedIcons, roadsideButton: null });
+                      const updatedIcons = {
+                        roadsideButton: null,
+                        chargingButton: selectedIcons?.chargingButton || null,
+                        locationButton: selectedIcons?.locationButton || null,
+                        submitButton: selectedIcons?.submitButton || null,
+                      };
+                      setSelectedIcons(updatedIcons);
                       setHasUnsavedChanges(true);
                     }}
                   >
@@ -311,7 +328,13 @@ export default function CustomizationScreen() {
                       quality: 1,
                     });
                     if (!result.canceled && result.assets[0]) {
-                      setSelectedIcons({ ...selectedIcons, chargingButton: result.assets[0].uri });
+                      const updatedIcons = {
+                        roadsideButton: selectedIcons?.roadsideButton || null,
+                        chargingButton: result.assets[0].uri,
+                        locationButton: selectedIcons?.locationButton || null,
+                        submitButton: selectedIcons?.submitButton || null,
+                      };
+                      setSelectedIcons(updatedIcons);
                       setHasUnsavedChanges(true);
                     }
                   }}
@@ -319,11 +342,17 @@ export default function CustomizationScreen() {
                   <Upload size={16} color={colors.white} />
                   <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
                 </TouchableOpacity>
-                {selectedIcons.chargingButton && (
+                {selectedIcons?.chargingButton && (
                   <TouchableOpacity
                     style={[styles.iconButton, { backgroundColor: colors.error }]}
                     onPress={() => {
-                      setSelectedIcons({ ...selectedIcons, chargingButton: null });
+                      const updatedIcons = {
+                        roadsideButton: selectedIcons?.roadsideButton || null,
+                        chargingButton: null,
+                        locationButton: selectedIcons?.locationButton || null,
+                        submitButton: selectedIcons?.submitButton || null,
+                      };
+                      setSelectedIcons(updatedIcons);
                       setHasUnsavedChanges(true);
                     }}
                   >
@@ -359,7 +388,13 @@ export default function CustomizationScreen() {
                       quality: 1,
                     });
                     if (!result.canceled && result.assets[0]) {
-                      setSelectedIcons({ ...selectedIcons, locationButton: result.assets[0].uri });
+                      const updatedIcons = {
+                        roadsideButton: selectedIcons?.roadsideButton || null,
+                        chargingButton: selectedIcons?.chargingButton || null,
+                        locationButton: result.assets[0].uri,
+                        submitButton: selectedIcons?.submitButton || null,
+                      };
+                      setSelectedIcons(updatedIcons);
                       setHasUnsavedChanges(true);
                     }
                   }}
@@ -367,11 +402,17 @@ export default function CustomizationScreen() {
                   <Upload size={16} color={colors.white} />
                   <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
                 </TouchableOpacity>
-                {selectedIcons.locationButton && (
+                {selectedIcons?.locationButton && (
                   <TouchableOpacity
                     style={[styles.iconButton, { backgroundColor: colors.error }]}
                     onPress={() => {
-                      setSelectedIcons({ ...selectedIcons, locationButton: null });
+                      const updatedIcons = {
+                        roadsideButton: selectedIcons?.roadsideButton || null,
+                        chargingButton: selectedIcons?.chargingButton || null,
+                        locationButton: null,
+                        submitButton: selectedIcons?.submitButton || null,
+                      };
+                      setSelectedIcons(updatedIcons);
                       setHasUnsavedChanges(true);
                     }}
                   >
@@ -407,7 +448,13 @@ export default function CustomizationScreen() {
                       quality: 1,
                     });
                     if (!result.canceled && result.assets[0]) {
-                      setSelectedIcons({ ...selectedIcons, submitButton: result.assets[0].uri });
+                      const updatedIcons = {
+                        roadsideButton: selectedIcons?.roadsideButton || null,
+                        chargingButton: selectedIcons?.chargingButton || null,
+                        locationButton: selectedIcons?.locationButton || null,
+                        submitButton: result.assets[0].uri,
+                      };
+                      setSelectedIcons(updatedIcons);
                       setHasUnsavedChanges(true);
                     }
                   }}
@@ -415,11 +462,17 @@ export default function CustomizationScreen() {
                   <Upload size={16} color={colors.white} />
                   <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
                 </TouchableOpacity>
-                {selectedIcons.submitButton && (
+                {selectedIcons?.submitButton && (
                   <TouchableOpacity
                     style={[styles.iconButton, { backgroundColor: colors.error }]}
                     onPress={() => {
-                      setSelectedIcons({ ...selectedIcons, submitButton: null });
+                      const updatedIcons = {
+                        roadsideButton: selectedIcons?.roadsideButton || null,
+                        chargingButton: selectedIcons?.chargingButton || null,
+                        locationButton: selectedIcons?.locationButton || null,
+                        submitButton: null,
+                      };
+                      setSelectedIcons(updatedIcons);
                       setHasUnsavedChanges(true);
                     }}
                   >
