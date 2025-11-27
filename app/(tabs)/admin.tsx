@@ -42,6 +42,7 @@ import {
   CreditCard,
   Users as UsersIcon,
   UserPlus,
+  Shield,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -1693,6 +1694,18 @@ export default function AdminScreen() {
             >
               <FileText color={colors.success} size={28} />
               <Text style={styles.quickActionLabel}>Test Invoice</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickActionCard}
+              onPress={() => {
+                if (Platform.OS !== "web") {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                router.push('/audit-logs');
+              }}
+            >
+              <Shield color={"#FF6B35"} size={28} />
+              <Text style={styles.quickActionLabel}>Audit Logs</Text>
             </TouchableOpacity>
           </View>
         </View>
