@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  Linking,
 } from "react-native";
 import { useTheme, COLOR_SCHEMES } from "@/constants/themeContext";
 import * as ImagePicker from "expo-image-picker";
@@ -28,23 +29,63 @@ export default function CustomizationScreen() {
       return;
     }
 
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log("Requesting media library permissions...");
     
-    if (permissionResult.granted === false) {
-      Alert.alert("Permission Required", "Permission to access camera roll is required!");
+    const { status: existingStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
+    console.log("Current permission status:", existingStatus);
+    
+    let finalStatus = existingStatus;
+    
+    if (existingStatus !== 'granted') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      finalStatus = status;
+      console.log("Permission request result:", status);
+    }
+
+    if (finalStatus !== 'granted') {
+      console.log("Permission denied, showing settings alert");
+      
+      Alert.alert(
+        "Photo Library Access Required",
+        "To upload a background image, this app needs access to your photo library. Would you like to open Settings to enable photo access?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+            onPress: () => console.log("User cancelled settings navigation")
+          },
+          {
+            text: "Open Settings",
+            onPress: async () => {
+              console.log("Opening app settings...");
+              await Linking.openSettings();
+            }
+          }
+        ]
+      );
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 1,
-    });
+    console.log("Permission granted, launching image library...");
 
-    if (!result.canceled && result.assets[0]) {
-      setSelectedBackgroundImage(result.assets[0].uri);
-      setHasUnsavedChanges(true);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 1,
+      });
+
+      console.log("Image picker result:", result);
+
+      if (!result.canceled && result.assets[0]) {
+        console.log("Image selected:", result.assets[0].uri);
+        setSelectedBackgroundImage(result.assets[0].uri);
+        setHasUnsavedChanges(true);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to pick image. Please try again.");
     }
   };
 
