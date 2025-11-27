@@ -4,10 +4,12 @@ import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useService } from "@/constants/serviceContext";
 import { useTheme } from "@/constants/themeContext";
+import { useAuth } from "@/constants/authContext";
 
 export default function TabLayout() {
   const { requests } = useService();
   const { theme, colors } = useTheme();
+  const { user } = useAuth();
   
   const pendingRequests = requests.filter((r) => r.status === "pending");
   
@@ -135,6 +137,7 @@ export default function TabLayout() {
           title: "Customization",
           headerTitle: "Customization",
           tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
+          href: (user?.role === "admin" || user?.role === "super_admin") ? undefined : null,
         }}
       />
     </Tabs>
