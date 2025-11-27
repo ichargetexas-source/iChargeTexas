@@ -25,6 +25,14 @@ export default function CustomizationScreen() {
     locationButton: null,
     submitButton: null,
   });
+  const [selectedButtonImages, setSelectedButtonImages] = useState(theme.customButtonImages || {
+    roadsideMascot: null,
+    chargingMascot: null,
+  });
+  const [selectedButtonColors, setSelectedButtonColors] = useState(theme.customButtonColors || {
+    roadsideBackground: null,
+    chargingBackground: null,
+  });
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
 
@@ -136,6 +144,8 @@ export default function CustomizationScreen() {
         backgroundImage: selectedBackgroundImage,
         colorScheme: selectedScheme,
         customIcons: selectedIcons,
+        customButtonImages: selectedButtonImages,
+        customButtonColors: selectedButtonColors,
       });
       setHasUnsavedChanges(false);
       Alert.alert("Success", "All changes saved successfully!");
@@ -235,11 +245,223 @@ export default function CustomizationScreen() {
           <View style={styles.sectionHeader}>
             <ImageIcon size={24} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Service Button Mascots & Colors
+            </Text>
+          </View>
+          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
+            Customize the mascot image and background color for service buttons (the robot guy and button color)
+          </Text>
+          
+          <View style={styles.buttonCustomizationList}>
+            <View style={[styles.buttonCustomItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.buttonCustomHeader}>
+                <Truck size={20} color={colors.roadside} />
+                <Text style={[styles.buttonCustomLabel, { color: colors.text }]}>Roadside Assistance Button</Text>
+              </View>
+              
+              <View style={styles.buttonCustomSection}>
+                <Text style={[styles.buttonCustomSubLabel, { color: colors.textSecondary }]}>Mascot Image (Robot Guy)</Text>
+                <View style={styles.iconActions}>
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: colors.primary }]}
+                    onPress={async () => {
+                      if (Platform.OS === 'web') {
+                        Alert.alert("Not Available", "Image upload is not available on web.");
+                        return;
+                      }
+                      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                      if (status !== 'granted') {
+                        Alert.alert("Permission Required", "Photo library access is required.");
+                        return;
+                      }
+                      const result = await ImagePicker.launchImageLibraryAsync({
+                        mediaTypes: ["images"],
+                        allowsEditing: true,
+                        aspect: [1, 1],
+                        quality: 1,
+                      });
+                      if (!result.canceled && result.assets[0]) {
+                        setSelectedButtonImages({
+                          ...selectedButtonImages,
+                          roadsideMascot: result.assets[0].uri,
+                        });
+                        setHasUnsavedChanges(true);
+                      }
+                    }}
+                  >
+                    <Upload size={16} color={colors.white} />
+                    <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
+                  </TouchableOpacity>
+                  {selectedButtonImages?.roadsideMascot && (
+                    <TouchableOpacity
+                      style={[styles.iconButton, { backgroundColor: colors.error }]}
+                      onPress={() => {
+                        setSelectedButtonImages({
+                          ...selectedButtonImages,
+                          roadsideMascot: null,
+                        });
+                        setHasUnsavedChanges(true);
+                      }}
+                    >
+                      <X size={16} color={colors.white} />
+                      <Text style={[styles.iconButtonText, { color: colors.white }]}>Remove</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.buttonCustomSection}>
+                <Text style={[styles.buttonCustomSubLabel, { color: colors.textSecondary }]}>Background Color (Hex)</Text>
+                <View style={{ flexDirection: 'row' as const, gap: 8, alignItems: 'center' as const }}>
+                  <TextInput
+                    style={[styles.colorInput, { 
+                      backgroundColor: colors.background, 
+                      borderColor: colors.border,
+                      color: colors.text 
+                    }]}
+                    value={selectedButtonColors?.roadsideBackground || ''}
+                    onChangeText={(text) => {
+                      setSelectedButtonColors({
+                        ...selectedButtonColors,
+                        roadsideBackground: text || null,
+                      });
+                      setHasUnsavedChanges(true);
+                    }}
+                    placeholder="#FF0000"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                  {selectedButtonColors?.roadsideBackground && (
+                    <View style={[styles.colorPreviewBox, { backgroundColor: selectedButtonColors.roadsideBackground }]} />
+                  )}
+                  {selectedButtonColors?.roadsideBackground && (
+                    <TouchableOpacity
+                      style={[styles.iconButton, { backgroundColor: colors.error, paddingHorizontal: 10 }]}
+                      onPress={() => {
+                        setSelectedButtonColors({
+                          ...selectedButtonColors,
+                          roadsideBackground: null,
+                        });
+                        setHasUnsavedChanges(true);
+                      }}
+                    >
+                      <X size={16} color={colors.white} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </View>
+
+            <View style={[styles.buttonCustomItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.buttonCustomHeader}>
+                <Zap size={20} color={colors.charging} />
+                <Text style={[styles.buttonCustomLabel, { color: colors.text }]}>Schedule Charging Button</Text>
+              </View>
+              
+              <View style={styles.buttonCustomSection}>
+                <Text style={[styles.buttonCustomSubLabel, { color: colors.textSecondary }]}>Mascot Image (Robot Guy)</Text>
+                <View style={styles.iconActions}>
+                  <TouchableOpacity
+                    style={[styles.iconButton, { backgroundColor: colors.primary }]}
+                    onPress={async () => {
+                      if (Platform.OS === 'web') {
+                        Alert.alert("Not Available", "Image upload is not available on web.");
+                        return;
+                      }
+                      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                      if (status !== 'granted') {
+                        Alert.alert("Permission Required", "Photo library access is required.");
+                        return;
+                      }
+                      const result = await ImagePicker.launchImageLibraryAsync({
+                        mediaTypes: ["images"],
+                        allowsEditing: true,
+                        aspect: [1, 1],
+                        quality: 1,
+                      });
+                      if (!result.canceled && result.assets[0]) {
+                        setSelectedButtonImages({
+                          ...selectedButtonImages,
+                          chargingMascot: result.assets[0].uri,
+                        });
+                        setHasUnsavedChanges(true);
+                      }
+                    }}
+                  >
+                    <Upload size={16} color={colors.white} />
+                    <Text style={[styles.iconButtonText, { color: colors.white }]}>Upload</Text>
+                  </TouchableOpacity>
+                  {selectedButtonImages?.chargingMascot && (
+                    <TouchableOpacity
+                      style={[styles.iconButton, { backgroundColor: colors.error }]}
+                      onPress={() => {
+                        setSelectedButtonImages({
+                          ...selectedButtonImages,
+                          chargingMascot: null,
+                        });
+                        setHasUnsavedChanges(true);
+                      }}
+                    >
+                      <X size={16} color={colors.white} />
+                      <Text style={[styles.iconButtonText, { color: colors.white }]}>Remove</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.buttonCustomSection}>
+                <Text style={[styles.buttonCustomSubLabel, { color: colors.textSecondary }]}>Background Color (Hex)</Text>
+                <View style={{ flexDirection: 'row' as const, gap: 8, alignItems: 'center' as const }}>
+                  <TextInput
+                    style={[styles.colorInput, { 
+                      backgroundColor: colors.background, 
+                      borderColor: colors.border,
+                      color: colors.text 
+                    }]}
+                    value={selectedButtonColors?.chargingBackground || ''}
+                    onChangeText={(text) => {
+                      setSelectedButtonColors({
+                        ...selectedButtonColors,
+                        chargingBackground: text || null,
+                      });
+                      setHasUnsavedChanges(true);
+                    }}
+                    placeholder="#10B981"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                  {selectedButtonColors?.chargingBackground && (
+                    <View style={[styles.colorPreviewBox, { backgroundColor: selectedButtonColors.chargingBackground }]} />
+                  )}
+                  {selectedButtonColors?.chargingBackground && (
+                    <TouchableOpacity
+                      style={[styles.iconButton, { backgroundColor: colors.error, paddingHorizontal: 10 }]}
+                      onPress={() => {
+                        setSelectedButtonColors({
+                          ...selectedButtonColors,
+                          chargingBackground: null,
+                        });
+                        setHasUnsavedChanges(true);
+                      }}
+                    >
+                      <X size={16} color={colors.white} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <ImageIcon size={24} color={colors.primary} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Button Icons
             </Text>
           </View>
           <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-            Customize icons for service buttons
+            Customize small icons for service buttons (like the truck and lightning symbols)
           </Text>
           
           <View style={styles.iconsList}>
@@ -785,5 +1007,47 @@ const styles = StyleSheet.create({
   iconButtonText: {
     fontSize: 13,
     fontWeight: "600" as const,
+  },
+  buttonCustomizationList: {
+    gap: 16,
+  },
+  buttonCustomItem: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    gap: 16,
+  },
+  buttonCustomHeader: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 10,
+    marginBottom: 4,
+  },
+  buttonCustomLabel: {
+    fontSize: 16,
+    fontWeight: "700" as const,
+    flex: 1,
+  },
+  buttonCustomSection: {
+    gap: 8,
+  },
+  buttonCustomSubLabel: {
+    fontSize: 13,
+    fontWeight: "600" as const,
+  },
+  colorInput: {
+    flex: 1,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    borderWidth: 1,
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+  },
+  colorPreviewBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
   },
 });

@@ -734,7 +734,7 @@ export default function HomeScreen() {
               <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.services}</Text>
               <View style={styles.serviceCards}>
                 <TouchableOpacity
-                  style={[styles.serviceCard, { backgroundColor: colors.roadside }]}
+                  style={[styles.serviceCard, { backgroundColor: theme.customButtonColors?.roadsideBackground || colors.roadside }]}
                   onPress={() =>
                     router.push({
                       pathname: "/(tabs)/request",
@@ -759,15 +759,23 @@ export default function HomeScreen() {
                       {t.roadsideDesc}
                     </Text>
                   </View>
-                  <Image
-                    source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
-                    style={styles.mascotImage}
-                    resizeMode="contain"
-                  />
+                  {theme.customButtonImages?.roadsideMascot ? (
+                    <Image
+                      source={{ uri: theme.customButtonImages.roadsideMascot }}
+                      style={styles.mascotImage}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <Image
+                      source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                      style={styles.mascotImage}
+                      resizeMode="contain"
+                    />
+                  )}
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.serviceCard, { backgroundColor: colors.charging }]}
+                  style={[styles.serviceCard, { backgroundColor: theme.customButtonColors?.chargingBackground || colors.charging }]}
                   onPress={() =>
                     router.push({
                       pathname: "/(tabs)/request",
@@ -792,11 +800,19 @@ export default function HomeScreen() {
                       {t.scheduledChargingDesc}
                     </Text>
                   </View>
-                  <Image
-                    source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
-                    style={styles.mascotImage}
-                    resizeMode="contain"
-                  />
+                  {theme.customButtonImages?.chargingMascot ? (
+                    <Image
+                      source={{ uri: theme.customButtonImages.chargingMascot }}
+                      style={styles.mascotImage}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <Image
+                      source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
+                      style={styles.mascotImage}
+                      resizeMode="contain"
+                    />
+                  )}
                 </TouchableOpacity>
               </View>
             </View>

@@ -187,6 +187,14 @@ export interface ThemeSettings {
     locationButton: string | null;
     submitButton: string | null;
   };
+  customButtonImages: {
+    roadsideMascot: string | null;
+    chargingMascot: string | null;
+  };
+  customButtonColors: {
+    roadsideBackground: string | null;
+    chargingBackground: string | null;
+  };
 }
 
 const DEFAULT_THEME: ThemeSettings = {
@@ -198,6 +206,14 @@ const DEFAULT_THEME: ThemeSettings = {
     chargingButton: null,
     locationButton: null,
     submitButton: null,
+  },
+  customButtonImages: {
+    roadsideMascot: null,
+    chargingMascot: null,
+  },
+  customButtonColors: {
+    roadsideBackground: null,
+    chargingBackground: null,
   },
 };
 
