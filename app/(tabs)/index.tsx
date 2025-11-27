@@ -385,7 +385,7 @@ export default function HomeScreen() {
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.services}</Text>
                 <View style={styles.serviceCards}>
                   <TouchableOpacity
-                    style={[styles.serviceCard, { backgroundColor: colors.roadside }]}
+                    style={[styles.serviceCard, { backgroundColor: theme.customButtonColors?.roadsideBackground || colors.roadside }]}
                     onPress={() =>
                       router.push({
                         pathname: "/(tabs)/request",
@@ -418,7 +418,7 @@ export default function HomeScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[styles.serviceCard, { backgroundColor: colors.charging }]}
+                    style={[styles.serviceCard, { backgroundColor: theme.customButtonColors?.chargingBackground || colors.charging }]}
                     onPress={() =>
                       router.push({
                         pathname: "/(tabs)/request",
