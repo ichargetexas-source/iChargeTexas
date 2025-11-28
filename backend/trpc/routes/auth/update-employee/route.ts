@@ -58,15 +58,16 @@ async function hashPassword(password: string): Promise<string> {
   return `hashed_${password}`;
 }
 
-export const createEmployeeProcedure = protectedProcedure
+export const updateEmployeeProcedure = protectedProcedure
   .input(
     z.object({
-      username: z.string().min(3),
-      password: z.string().min(8),
-      role: z.enum(["admin", "worker", "employee"]),
-      fullName: z.string(),
-      email: z.string().email(),
-      phone: z.string(),
+      employeeId: z.string(),
+      username: z.string().min(3).optional(),
+      password: z.string().min(8).optional(),
+      fullName: z.string().optional(),
+      email: z.string().email().optional(),
+      phone: z.string().optional(),
+      isActive: z.boolean().optional(),
       permissions: z.object({
         canManageUsers: z.boolean(),
         canViewReports: z.boolean(),
@@ -74,7 +75,7 @@ export const createEmployeeProcedure = protectedProcedure
         canCreateInvoices: z.boolean(),
         canViewCustomerInfo: z.boolean(),
         canDeleteData: z.boolean(),
-      }),
+      }).optional(),
     })
   )
   .mutation(async ({ input, ctx }) => {
@@ -91,51 +92,67 @@ export const createEmployeeProcedure = protectedProcedure
       employees = await kv.getJSON<Employee[]>(storageKey) || [];
     }
     
+    const employeeToUpdate = employees.find((e) => e.id === input.employeeId);
+    
+    if (!employeeToUpdate) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Employee not found",
+      });
+    }
+    
     const requestingUser = employees.find((e) => e.id === ctx.userId);
-
+    
     if (!isSuperAdminRequest) {
       if (!requestingUser || requestingUser.role !== "admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Only administrators can create new users",
+          message: "Only administrators can update users",
+        });
+      }
+      
+      if (employeeToUpdate.role === "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You cannot update administrator accounts",
         });
       }
     }
-
-    const existingUser = employees.find((e) => e.username === input.username);
-    if (existingUser) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message: "Username already exists",
-      });
+    
+    if (input.username && input.username !== employeeToUpdate.username) {
+      const existingUser = employees.find((e) => e.username === input.username && e.id !== input.employeeId);
+      if (existingUser) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Username already exists",
+        });
+      }
     }
-
-    const normalizedRole: Employee["role"] = input.role === "employee" ? "worker" : input.role;
-
-    const newEmployee: Employee = {
-      id: `emp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      username: input.username,
-      passwordHash: await hashPassword(input.password),
-      role: normalizedRole,
-      fullName: input.fullName,
-      email: input.email,
-      phone: input.phone,
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      createdBy: ctx.userId || "system",
-      permissions: input.permissions,
+    
+    const updatedEmployee: Employee = {
+      ...employeeToUpdate,
+      username: input.username ?? employeeToUpdate.username,
+      fullName: input.fullName ?? employeeToUpdate.fullName,
+      email: input.email ?? employeeToUpdate.email,
+      phone: input.phone ?? employeeToUpdate.phone,
+      isActive: input.isActive ?? employeeToUpdate.isActive,
+      permissions: input.permissions ?? employeeToUpdate.permissions,
     };
-
-    employees.push(newEmployee);
-    await kv.setJSON(storageKey, employees);
-
+    
+    if (input.password) {
+      updatedEmployee.passwordHash = await hashPassword(input.password);
+    }
+    
+    const updatedEmployees = employees.map((e) => e.id === input.employeeId ? updatedEmployee : e);
+    await kv.setJSON(storageKey, updatedEmployees);
+    
     await logAuditEntry({
       username: isSuperAdminRequest ? "super_admin" : requestingUser?.username || "system",
-      action: "user_created",
+      action: "user_updated",
       userId: ctx.userId,
-      details: `Created ${normalizedRole} account for ${input.username}`,
+      details: `Updated ${employeeToUpdate.role} account for ${updatedEmployee.username}`,
     });
-
-    const { passwordHash, ...employeeWithoutPassword } = newEmployee;
+    
+    const { passwordHash, ...employeeWithoutPassword } = updatedEmployee;
     return { success: true, employee: employeeWithoutPassword };
   });

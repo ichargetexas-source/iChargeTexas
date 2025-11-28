@@ -4,6 +4,8 @@ import { SystemUser, UserRole } from "@/constants/types";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/constants/authContext";
 import {
   Users,
   Shield,
@@ -41,12 +43,31 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 type ModalType = "create" | "edit" | "view" | "permissions" | null;
 
 export default function UserManagementScreen() {
-  const allUsers: SystemUser[] = [];
-  const currentUser = null as SystemUser | null;
-  const createUser = async (data: any) => ({ success: false, message: "Auth disabled" });
-  const updateUser = async (userId: string, data: any) => ({ success: false, message: "Auth disabled" });
-  const getRoleDisplayName = (role: UserRole) => role;
+  const { user: currentUser } = useAuth();
   const insets = useSafeAreaInsets();
+  
+  const employeesQuery = trpc.auth.getEmployees.useQuery();
+  const createEmployeeMutation = trpc.auth.createEmployee.useMutation({
+    onSuccess: () => {
+      employeesQuery.refetch();
+    },
+  });
+  const updateEmployeeMutation = trpc.auth.updateEmployee.useMutation({
+    onSuccess: () => {
+      employeesQuery.refetch();
+    },
+  });
+  
+  const allUsers: SystemUser[] = (employeesQuery.data || []) as SystemUser[];
+  
+  const getRoleDisplayName = (role: UserRole) => {
+    switch (role) {
+      case "super_admin": return "Super Admin";
+      case "admin": return "Admin";
+      case "worker": return "Worker";
+      default: return role;
+    }
+  };
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<ModalType>(null);
   const [selectedUser, setSelectedUser] = useState<SystemUser | null>(null);
@@ -64,7 +85,7 @@ export default function UserManagementScreen() {
       canManageUsers: false,
       canViewReports: true,
       canHandleRequests: true,
-      canCreateInvoices: false,
+      canCreateInvoices: true,
       canViewCustomerInfo: true,
       canDeleteData: false,
     },
@@ -155,33 +176,55 @@ export default function UserManagementScreen() {
 
     try {
       if (modalType === "create") {
-        const result = await createUser(formData);
+        const roleForBackend = formData.role === "super_admin" ? "admin" : (formData.role as "admin" | "worker");
+        await createEmployeeMutation.mutateAsync({
+          username: formData.username,
+          password: formData.password,
+          role: roleForBackend,
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          permissions: formData.permissions,
+        });
         
-        if (result.success) {
-          if (Platform.OS !== "web") {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          }
-          Alert.alert("Success", "User created successfully");
-          handleCloseModal();
-        } else {
-          Alert.alert("Error", result.message);
+        if (Platform.OS !== "web") {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
+        Alert.alert("Success", "User created successfully");
+        handleCloseModal();
       } else if (modalType === "edit" && selectedUser) {
-        const result = await updateUser(selectedUser.id, formData);
+        await updateEmployeeMutation.mutateAsync({
+          employeeId: selectedUser.id,
+          username: formData.username,
+          password: formData.password,
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          isActive: formData.isActive,
+          permissions: formData.permissions,
+        });
         
-        if (result.success) {
-          if (Platform.OS !== "web") {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          }
-          Alert.alert("Success", "User updated successfully");
-          handleCloseModal();
-        } else {
-          Alert.alert("Error", result.message);
+        if (Platform.OS !== "web") {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
+        Alert.alert("Success", "User updated successfully");
+        handleCloseModal();
+      } else if (modalType === "permissions" && selectedUser) {
+        await updateEmployeeMutation.mutateAsync({
+          employeeId: selectedUser.id,
+          permissions: formData.permissions,
+        });
+        
+        if (Platform.OS !== "web") {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+        Alert.alert("Success", "Permissions updated successfully");
+        handleCloseModal();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("[UserManagement] Error:", error);
-      Alert.alert("Error", "An unexpected error occurred");
+      const errorMessage = error?.message || "An unexpected error occurred";
+      Alert.alert("Error", errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -245,7 +288,7 @@ export default function UserManagementScreen() {
                   canManageUsers: false,
                   canViewReports: true,
                   canHandleRequests: true,
-                  canCreateInvoices: false,
+                  canCreateInvoices: true,
                   canViewCustomerInfo: true,
                   canDeleteData: false,
                 },
@@ -284,7 +327,7 @@ export default function UserManagementScreen() {
                       canManageUsers: false,
                       canViewReports: true,
                       canHandleRequests: true,
-                      canCreateInvoices: false,
+                      canCreateInvoices: true,
                       canViewCustomerInfo: true,
                       canDeleteData: false,
                     },

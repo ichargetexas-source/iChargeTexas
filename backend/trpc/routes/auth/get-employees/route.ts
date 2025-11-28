@@ -23,8 +23,14 @@ interface Employee {
   };
 }
 
-export const getEmployeesProcedure = protectedProcedure.query(async () => {
-  const employees = await kv.getJSON<Employee[]>("employees") || [];
+export const getEmployeesProcedure = protectedProcedure.query(async ({ ctx }) => {
+  let employees: Employee[];
+  
+  if (ctx.tenantId) {
+    employees = await kv.getJSON<Employee[]>(`tenant:${ctx.tenantId}:users`) || [];
+  } else {
+    employees = await kv.getJSON<Employee[]>("employees") || [];
+  }
   
   const employeesWithoutPasswords = employees.map(({ passwordHash, ...employee }) => employee);
   
