@@ -25,35 +25,20 @@ app.onError((err, c) => {
   );
 });
 
-// Handle /api/trpc requests
+// Handle tRPC requests at /api/trpc
 app.use(
   "/api/trpc/*",
   trpcServer({
     router: appRouter,
     createContext,
+    endpoint: "/api/trpc",
     onError({ error, type, path, input, ctx, req }) {
-      console.error("[tRPC Error /api/trpc]", {
+      console.error("[tRPC Error]", {
         type,
         path,
         error: error.message,
         code: error.code,
-      });
-    },
-  })
-);
-
-// Handle /trpc requests (fallback)
-app.use(
-  "/trpc/*",
-  trpcServer({
-    router: appRouter,
-    createContext,
-    onError({ error, type, path, input, ctx, req }) {
-      console.error("[tRPC Error /trpc]", {
-        type,
-        path,
-        error: error.message,
-        code: error.code,
+        stack: error.stack,
       });
     },
   })
