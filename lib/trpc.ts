@@ -62,10 +62,18 @@ export const trpcClient = trpc.createClient({
           console.error(`[tRPC Client] URL: ${url}`);
           console.error(`[tRPC Client] Body: ${text.substring(0, 1000)}`);
           
+          let errorMessage = `HTTP Error ${response.status}`;
+          try {
+            const jsonError = JSON.parse(text);
+            errorMessage = jsonError.error?.message || jsonError.message || errorMessage;
+          } catch {
+            errorMessage = text || errorMessage;
+          }
+          
           const errorResponse = new Response(
             JSON.stringify({
               error: {
-                message: text || `HTTP Error ${response.status}`,
+                message: errorMessage,
                 code: "HTTP_ERROR",
                 data: {
                   httpStatus: response.status,
