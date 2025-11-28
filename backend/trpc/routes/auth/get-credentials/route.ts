@@ -43,6 +43,7 @@ export const getCredentialLogsProcedure = protectedProcedure
     if (ctx.userId === SUPER_ADMIN_ID) {
       return logs;
     } else {
+      // Return logs created by the current user
       return logs.filter(log => log.createdById === ctx.userId);
     }
   });

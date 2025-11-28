@@ -3,6 +3,7 @@ import { trpcServer } from "@hono/trpc-server";
 import { cors } from "hono/cors";
 import { appRouter } from "./trpc/app-router";
 import { createContext } from "./trpc/create-context";
+import { kv } from "./storage";
 
 const app = new Hono();
 
@@ -13,6 +14,91 @@ app.use("*", async (c, next) => {
   console.log(`[Hono Incoming] ${c.req.method} ${c.req.path}`);
   await next();
 });
+
+// Seed data function
+async function seedData() {
+  const employees = await kv.getJSON<any[]>("employees") || [];
+  
+  // Seed super admin
+  if (!employees.some((e) => e.username === "admin")) {
+    console.log("[Seed] Creating admin user");
+    employees.push({
+      id: "super_admin_001",
+      username: "admin",
+      passwordHash: "hashed_admin123", // In real app, hash this
+      role: "super_admin",
+      fullName: "System Admin",
+      email: "admin@rork.app",
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      createdBy: "system",
+      permissions: {
+        canManageUsers: true,
+        canViewReports: true,
+        canHandleRequests: true,
+        canCreateInvoices: true,
+        canViewCustomerInfo: true,
+        canDeleteData: true,
+      }
+    });
+    
+    // Also log credentials for admin
+    const credentialLogs = await kv.getJSON<any[]>("credential_logs") || [];
+    credentialLogs.push({
+      id: "cred_admin",
+      username: "admin",
+      password: "admin123",
+      role: "super_admin",
+      createdAt: new Date().toISOString(),
+      createdBy: "system",
+      createdById: "system"
+    });
+    await kv.setJSON("credential_logs", credentialLogs);
+  }
+
+  // Seed user "elena" as requested by user
+  if (!employees.some((e) => e.username === "elena")) {
+    console.log("[Seed] Creating user elena");
+    employees.push({
+      id: `emp_${Date.now()}_elena`,
+      username: "elena",
+      passwordHash: "hashed_bacon",
+      role: "worker",
+      fullName: "elena",
+      email: "ichargetexas@gmail.com",
+      phone: "9034520052",
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      createdBy: "super_admin_001",
+      permissions: {
+        canManageUsers: false,
+        canViewReports: true,
+        canHandleRequests: true,
+        canCreateInvoices: true,
+        canViewCustomerInfo: true,
+        canDeleteData: false,
+      }
+    });
+    
+    // Log credentials for elena
+    const credentialLogs = await kv.getJSON<any[]>("credential_logs") || [];
+    credentialLogs.push({
+      id: `cred_${Date.now()}_elena`,
+      username: "elena",
+      password: "bacon",
+      role: "worker",
+      createdAt: new Date().toISOString(),
+      createdBy: "Super Admin",
+      createdById: "super_admin_001"
+    });
+    await kv.setJSON("credential_logs", credentialLogs);
+  }
+
+  await kv.setJSON("employees", employees);
+}
+
+// Run seed
+seedData().catch(console.error);
 
 app.onError((err, c) => {
   console.error("[Hono Error]", err);

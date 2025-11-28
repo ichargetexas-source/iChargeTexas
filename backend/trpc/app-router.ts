@@ -30,7 +30,6 @@ export const appRouter = createTRPCRouter({
   auth: createTRPCRouter({
     login: loginProcedure,
     getAuditLogs: getAuditLogsProcedure,
-    // Use createUserProcedure but expose it as createEmployee to match client calls
     createEmployee: createUserProcedure,
     getCredentialLogs: getCredentialLogsProcedure,
     getEmployees: getEmployeesProcedure,

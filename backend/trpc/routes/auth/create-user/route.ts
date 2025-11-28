@@ -9,7 +9,7 @@ interface Employee {
   id: string;
   username: string;
   passwordHash: string;
-  role: "admin" | "worker" | "employee";
+  role: "admin" | "worker" | "employee" | "super_admin";
   fullName: string;
   email: string;
   phone: string;
@@ -27,10 +27,10 @@ interface Employee {
   };
 }
 
-interface CredentialLog {
+export interface CredentialLog {
   id: string;
   username: string;
-  password: string; // Storing plain text password as requested for logging
+  password: string; // Storing plain text password as requested
   role: string;
   createdAt: string;
   createdBy: string;
@@ -38,6 +38,7 @@ interface CredentialLog {
 }
 
 async function hashPassword(password: string): Promise<string> {
+  // Simulating hashing
   return `hashed_${password}`;
 }
 
@@ -46,7 +47,7 @@ export const createUserProcedure = protectedProcedure
     z.object({
       username: z.string().min(3),
       password: z.string().min(6),
-      role: z.enum(["admin", "worker", "employee"]),
+      role: z.enum(["admin", "worker", "employee", "super_admin"]),
       fullName: z.string(),
       email: z.string().email(),
       phone: z.string(),
@@ -68,22 +69,14 @@ export const createUserProcedure = protectedProcedure
     });
 
     // Permission Check
-    // We need to fetch the requestor to know their role
-    let requestorRole = "unknown";
     let requestorName = "System";
 
     if (ctx.userId === SUPER_ADMIN_ID) {
-      requestorRole = "super_admin";
       requestorName = "Super Admin";
     } else {
       // Check if user exists in global employees or tenant employees
-      // Since ctx.userId is present (protectedProcedure), we need to find where they are.
-      // Simplification: Check both or rely on context if we had role there.
-      // For now, let's fetch from "employees" (global) first, then tenant if needed.
-      
       let requestor: Employee | undefined;
       
-      // Try global first
       const globalEmployees = await kv.getJSON<Employee[]>("employees") || [];
       requestor = globalEmployees.find(e => e.id === ctx.userId);
 
@@ -93,19 +86,16 @@ export const createUserProcedure = protectedProcedure
       }
 
       if (!requestor) {
-         // Fallback for demo/testing if somehow authenticated but not found (unlikely)
          throw new TRPCError({ code: "UNAUTHORIZED", message: "User not found" });
       }
 
-      requestorRole = requestor.role;
-      requestorName = requestor.username;
-
-      if (requestorRole !== "admin" && requestorRole !== "super_admin") {
+      if (requestor.role !== "admin" && requestor.role !== "super_admin") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only administrators can create new users",
         });
       }
+      requestorName = requestor.username;
     }
 
     // Determine storage location
@@ -147,7 +137,7 @@ export const createUserProcedure = protectedProcedure
     existingUsers.push(newEmployee);
     await kv.setJSON(storageKey, existingUsers);
 
-    // LOG CREDENTIALS (as requested)
+    // LOG CREDENTIALS
     const credentialLog: CredentialLog = {
       id: `cred_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       username: input.username,
@@ -158,13 +148,9 @@ export const createUserProcedure = protectedProcedure
       createdById: ctx.userId,
     };
 
-    // Store credentials in a separate secure list
-    // If tenant, we might want to store it in tenant specific logs, but for "admin visibility" 
-    // let's store it where admins can find it.
-    // If it's a tenant user, store in tenant logs.
     const credentialKey = ctx.tenantId ? `tenant:${ctx.tenantId}:credential_logs` : "credential_logs";
     const credentialLogs = await kv.getJSON<CredentialLog[]>(credentialKey) || [];
-    credentialLogs.unshift(credentialLog); // Add to beginning
+    credentialLogs.unshift(credentialLog);
     await kv.setJSON(credentialKey, credentialLogs);
 
     console.log("[createUser] User created and credentials logged.");
