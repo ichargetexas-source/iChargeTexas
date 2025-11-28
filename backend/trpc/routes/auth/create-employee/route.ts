@@ -171,7 +171,28 @@ export const createEmployeeProcedure = protectedProcedure
       details: `Created ${normalizedRole} account for ${input.username} with email ${input.email}`,
     });
 
-    const { passwordHash, ...employeeWithoutPassword } = newEmployee;
     console.log("[createEmployee] SUCCESS: User created successfully");
-    return { success: true, employee: employeeWithoutPassword };
+    
+    return {
+      success: true,
+      employee: {
+        id: newEmployee.id,
+        username: newEmployee.username,
+        role: newEmployee.role,
+        fullName: newEmployee.fullName,
+        email: newEmployee.email,
+        phone: newEmployee.phone,
+        isActive: newEmployee.isActive,
+        createdAt: newEmployee.createdAt,
+        createdBy: newEmployee.createdBy,
+        permissions: {
+          canManageUsers: newEmployee.permissions.canManageUsers,
+          canViewReports: newEmployee.permissions.canViewReports,
+          canHandleRequests: newEmployee.permissions.canHandleRequests,
+          canCreateInvoices: newEmployee.permissions.canCreateInvoices,
+          canViewCustomerInfo: newEmployee.permissions.canViewCustomerInfo,
+          canDeleteData: newEmployee.permissions.canDeleteData,
+        },
+      },
+    };
   });
