@@ -97,8 +97,27 @@ async function seedData() {
   await kv.setJSON("employees", employees);
 }
 
-// Run seed
-seedData().catch(console.error);
+// Run seed on first request (lazy init)
+let seedPromise: Promise<void> | null = null;
+const ensureSeed = () => {
+  if (!seedPromise) {
+    seedPromise = seedData().catch(err => {
+      console.error("[Seed Error]", err);
+      seedPromise = null;
+    });
+  }
+  return seedPromise;
+};
+
+// Middleware to ensure seed runs before requests
+app.use("*", async (c, next) => {
+  try {
+    await ensureSeed();
+  } catch (err) {
+    console.error("[Seed] Failed to seed data", err);
+  }
+  return next();
+});
 
 app.onError((err, c) => {
   console.error("[Hono Error]", err);
