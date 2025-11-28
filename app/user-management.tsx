@@ -21,7 +21,10 @@ import {
   Lock,
   Settings,
   UserPlus,
+  Key,
+  Copy,
 } from "lucide-react-native";
+import * as Clipboard from "expo-clipboard";
 import React, { useState } from "react";
 import {
   View,
@@ -40,16 +43,21 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type ModalType = "create" | "edit" | "view" | "permissions" | null;
+type ModalType = "create" | "edit" | "view" | "permissions" | "credentials" | null;
 
 export default function UserManagementScreen() {
   const { user: currentUser } = useAuth();
   const insets = useSafeAreaInsets();
   
   const employeesQuery = trpc.auth.getEmployees.useQuery();
+  const credentialsQuery = trpc.auth.getCredentialLogs.useQuery(undefined, {
+    enabled: currentUser?.role === "admin" || currentUser?.role === "super_admin",
+  });
+
   const createEmployeeMutation = trpc.auth.createEmployee.useMutation({
     onSuccess: () => {
       employeesQuery.refetch();
+      credentialsQuery.refetch();
     },
   });
   const updateEmployeeMutation = trpc.auth.updateEmployee.useMutation({
@@ -271,10 +279,24 @@ export default function UserManagementScreen() {
             <Text style={styles.headerTitle}>User Management</Text>
             <Text style={styles.headerSubtitle}>{managedUsers.length} staff members</Text>
           </View>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => {
-              setModalType("create");
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {(currentUser?.role === "admin" || currentUser?.role === "super_admin") && (
+              <TouchableOpacity
+                style={[styles.addButton, { backgroundColor: colors.surfaceLight }]}
+                onPress={() => {
+                  setModalType("credentials");
+                  setModalVisible(true);
+                  credentialsQuery.refetch();
+                }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Key color={colors.text} size={20} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => {
+                setModalType("create");
               setSelectedUser(null);
               setFormData({
                 username: "",
@@ -300,6 +322,7 @@ export default function UserManagementScreen() {
           >
             <UserPlus color={colors.white} size={20} />
           </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -470,6 +493,7 @@ export default function UserManagementScreen() {
                   {modalType === "edit" && "Edit User"}
                   {modalType === "view" && "User Details"}
                   {modalType === "permissions" && "Edit Permissions"}
+                  {modalType === "credentials" && "Credentials Log"}
                 </Text>
                 <TouchableOpacity style={styles.modalCloseButton} onPress={handleCloseModal}>
                   <XCircle color={colors.textSecondary} size={24} />
@@ -482,7 +506,61 @@ export default function UserManagementScreen() {
                 contentContainerStyle={styles.modalScrollContent}
                 keyboardShouldPersistTaps="handled"
               >
-                {modalType === "permissions" && selectedUser ? (
+                {modalType === "credentials" ? (
+                  <View style={styles.credentialsContainer}>
+                    <Text style={styles.credentialsSubtitle}>
+                      This log shows initial passwords for created users. 
+                      Only admins can see this.
+                    </Text>
+                    
+                    {credentialsQuery.isLoading ? (
+                      <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
+                    ) : credentialsQuery.data && credentialsQuery.data.length > 0 ? (
+                      <View style={styles.credentialList}>
+                        {credentialsQuery.data.map((log) => (
+                          <View key={log.id} style={styles.credentialItem}>
+                            <View style={styles.credentialHeader}>
+                              <Text style={styles.credentialUsername}>{log.username}</Text>
+                              <View style={[styles.credentialBadge, { backgroundColor: getRoleBadgeColor(log.role as UserRole) + "20" }]}>
+                                <Text style={[styles.credentialBadgeText, { color: getRoleBadgeColor(log.role as UserRole) }]}>
+                                  {getRoleDisplayName(log.role as UserRole)}
+                                </Text>
+                              </View>
+                            </View>
+                            
+                            <View style={styles.credentialDetailRow}>
+                              <Text style={styles.credentialLabel}>Password:</Text>
+                              <Text style={styles.credentialValue}>{log.password}</Text>
+                              <TouchableOpacity 
+                                onPress={async () => {
+                                  await Clipboard.setStringAsync(log.password);
+                                  if (Platform.OS !== "web") {
+                                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                                  }
+                                  Alert.alert("Copied", "Password copied to clipboard");
+                                }}
+                                style={styles.copyButton}
+                              >
+                                <Copy size={14} color={colors.primary} />
+                              </TouchableOpacity>
+                            </View>
+                            
+                            <View style={styles.credentialMeta}>
+                              <Text style={styles.credentialMetaText}>
+                                Created by {log.createdBy} on {new Date(log.createdAt).toLocaleDateString()}
+                              </Text>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    ) : (
+                      <View style={styles.emptyCredentials}>
+                        <Key color={colors.textTertiary} size={48} />
+                        <Text style={styles.emptyCredentialsText}>No credentials logged yet</Text>
+                      </View>
+                    )}
+                  </View>
+                ) : modalType === "permissions" && selectedUser ? (
                   <View style={styles.permissionsOnlyContainer}>
                     <View style={styles.permissionsOnlyHeader}>
                       <View style={styles.userIconContainer}>
@@ -779,6 +857,7 @@ export default function UserManagementScreen() {
                         {modalType === "create" && "Create User"}
                         {modalType === "edit" && "Save Changes"}
                         {modalType === "permissions" && "Update Permissions"}
+                        {modalType === "credentials" && "Close"}
                       </Text>
                     )}
                   </TouchableOpacity>
@@ -1278,6 +1357,87 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginBottom: 12,
+  },
+  credentialsContainer: {
+    padding: 24,
+  },
+  credentialsSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  credentialList: {
+    gap: 16,
+  },
+  credentialItem: {
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  credentialHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  credentialUsername: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  credentialBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  credentialBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  credentialDetailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surfaceLight,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  credentialLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginRight: 8,
+  },
+  credentialValue: {
+    fontSize: 16,
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
+    color: colors.text,
+    flex: 1,
+    fontWeight: "600",
+  },
+  copyButton: {
+    padding: 8,
+  },
+  credentialMeta: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  credentialMetaText: {
+    fontSize: 11,
+    color: colors.textTertiary,
+  },
+  emptyCredentials: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+    gap: 12,
+  },
+  emptyCredentialsText: {
+    fontSize: 16,
+    color: colors.textSecondary,
   },
   fieldHelpText: {
     fontSize: 11,
