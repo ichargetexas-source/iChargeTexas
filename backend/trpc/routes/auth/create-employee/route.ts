@@ -78,7 +78,15 @@ export const createEmployeeProcedure = protectedProcedure
     })
   )
   .mutation(async ({ input, ctx }) => {
+    console.log("[createEmployee] Starting user creation", {
+      username: input.username,
+      role: input.role,
+      requestUserId: ctx.userId,
+      tenantId: ctx.tenantId,
+    });
+
     const isSuperAdminRequest = ctx.userId === SUPER_ADMIN_ID;
+    console.log("[createEmployee] Is super admin request:", isSuperAdminRequest);
     
     let employees: Employee[];
     let storageKey: string;
@@ -86,15 +94,31 @@ export const createEmployeeProcedure = protectedProcedure
     if (ctx.tenantId) {
       storageKey = `tenant:${ctx.tenantId}:users`;
       employees = await kv.getJSON<Employee[]>(storageKey) || [];
+      console.log(`[createEmployee] Loading tenant users from ${storageKey}:`, employees.length, "users");
     } else {
       storageKey = "employees";
       employees = await kv.getJSON<Employee[]>(storageKey) || [];
+      console.log(`[createEmployee] Loading employees from ${storageKey}:`, employees.length, "users");
     }
     
     const requestingUser = employees.find((e) => e.id === ctx.userId);
+    console.log("[createEmployee] Requesting user:", requestingUser ? {
+      id: requestingUser.id,
+      username: requestingUser.username,
+      role: requestingUser.role,
+    } : "not found");
 
     if (!isSuperAdminRequest) {
-      if (!requestingUser || requestingUser.role !== "admin") {
+      if (!requestingUser) {
+        console.log("[createEmployee] FORBIDDEN: Requesting user not found");
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "User not found. Please log in again.",
+        });
+      }
+      
+      if (requestingUser.role !== "admin") {
+        console.log("[createEmployee] FORBIDDEN: User is not an admin", requestingUser.role);
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only administrators can create new users",
@@ -102,8 +126,9 @@ export const createEmployeeProcedure = protectedProcedure
       }
     }
 
-    const existingUser = employees.find((e) => e.username === input.username);
+    const existingUser = employees.find((e) => e.username.toLowerCase() === input.username.toLowerCase());
     if (existingUser) {
+      console.log("[createEmployee] CONFLICT: Username already exists");
       throw new TRPCError({
         code: "CONFLICT",
         message: "Username already exists",
@@ -111,6 +136,7 @@ export const createEmployeeProcedure = protectedProcedure
     }
 
     const normalizedRole: Employee["role"] = input.role === "employee" ? "worker" : input.role;
+    console.log("[createEmployee] Normalized role:", normalizedRole);
 
     const newEmployee: Employee = {
       id: `emp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -126,16 +152,26 @@ export const createEmployeeProcedure = protectedProcedure
       permissions: input.permissions,
     };
 
+    console.log("[createEmployee] New employee created:", {
+      id: newEmployee.id,
+      username: newEmployee.username,
+      role: newEmployee.role,
+      email: newEmployee.email,
+      permissions: newEmployee.permissions,
+    });
+
     employees.push(newEmployee);
     await kv.setJSON(storageKey, employees);
+    console.log(`[createEmployee] Saved to ${storageKey}. Total users:`, employees.length);
 
     await logAuditEntry({
       username: isSuperAdminRequest ? "super_admin" : requestingUser?.username || "system",
       action: "user_created",
       userId: ctx.userId,
-      details: `Created ${normalizedRole} account for ${input.username}`,
+      details: `Created ${normalizedRole} account for ${input.username} with email ${input.email}`,
     });
 
     const { passwordHash, ...employeeWithoutPassword } = newEmployee;
+    console.log("[createEmployee] SUCCESS: User created successfully");
     return { success: true, employee: employeeWithoutPassword };
   });

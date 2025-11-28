@@ -79,7 +79,14 @@ export const updateEmployeeProcedure = protectedProcedure
     })
   )
   .mutation(async ({ input, ctx }) => {
+    console.log("[updateEmployee] Starting user update", {
+      employeeId: input.employeeId,
+      requestUserId: ctx.userId,
+      tenantId: ctx.tenantId,
+    });
+
     const isSuperAdminRequest = ctx.userId === SUPER_ADMIN_ID;
+    console.log("[updateEmployee] Is super admin request:", isSuperAdminRequest);
     
     let employees: Employee[];
     let storageKey: string;
@@ -87,24 +94,34 @@ export const updateEmployeeProcedure = protectedProcedure
     if (ctx.tenantId) {
       storageKey = `tenant:${ctx.tenantId}:users`;
       employees = await kv.getJSON<Employee[]>(storageKey) || [];
+      console.log(`[updateEmployee] Loaded ${employees.length} employees from ${storageKey}`);
     } else {
       storageKey = "employees";
       employees = await kv.getJSON<Employee[]>(storageKey) || [];
+      console.log(`[updateEmployee] Loaded ${employees.length} employees from ${storageKey}`);
     }
     
     const employeeToUpdate = employees.find((e) => e.id === input.employeeId);
     
     if (!employeeToUpdate) {
+      console.log("[updateEmployee] NOT_FOUND: Employee not found");
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Employee not found",
       });
     }
     
+    console.log("[updateEmployee] Employee to update:", {
+      id: employeeToUpdate.id,
+      username: employeeToUpdate.username,
+      role: employeeToUpdate.role,
+    });
+    
     const requestingUser = employees.find((e) => e.id === ctx.userId);
     
     if (!isSuperAdminRequest) {
       if (!requestingUser || requestingUser.role !== "admin") {
+        console.log("[updateEmployee] FORBIDDEN: Only admins can update users");
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only administrators can update users",
@@ -112,6 +129,7 @@ export const updateEmployeeProcedure = protectedProcedure
       }
       
       if (employeeToUpdate.role === "admin") {
+        console.log("[updateEmployee] FORBIDDEN: Cannot update admin accounts");
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You cannot update administrator accounts",
@@ -120,8 +138,9 @@ export const updateEmployeeProcedure = protectedProcedure
     }
     
     if (input.username && input.username !== employeeToUpdate.username) {
-      const existingUser = employees.find((e) => e.username === input.username && e.id !== input.employeeId);
+      const existingUser = employees.find((e) => e.username.toLowerCase() === input.username!.toLowerCase() && e.id !== input.employeeId);
       if (existingUser) {
+        console.log("[updateEmployee] CONFLICT: Username already exists");
         throw new TRPCError({
           code: "CONFLICT",
           message: "Username already exists",
@@ -141,10 +160,19 @@ export const updateEmployeeProcedure = protectedProcedure
     
     if (input.password) {
       updatedEmployee.passwordHash = await hashPassword(input.password);
+      console.log("[updateEmployee] Password updated");
     }
+    
+    console.log("[updateEmployee] Updated employee data:", {
+      id: updatedEmployee.id,
+      username: updatedEmployee.username,
+      email: updatedEmployee.email,
+      permissions: updatedEmployee.permissions,
+    });
     
     const updatedEmployees = employees.map((e) => e.id === input.employeeId ? updatedEmployee : e);
     await kv.setJSON(storageKey, updatedEmployees);
+    console.log(`[updateEmployee] Saved to ${storageKey}. Total users:`, updatedEmployees.length);
     
     await logAuditEntry({
       username: isSuperAdminRequest ? "super_admin" : requestingUser?.username || "system",
@@ -154,5 +182,6 @@ export const updateEmployeeProcedure = protectedProcedure
     });
     
     const { passwordHash, ...employeeWithoutPassword } = updatedEmployee;
+    console.log("[updateEmployee] SUCCESS: User updated successfully");
     return { success: true, employee: employeeWithoutPassword };
   });

@@ -24,15 +24,36 @@ interface Employee {
 }
 
 export const getEmployeesProcedure = protectedProcedure.query(async ({ ctx }) => {
+  console.log("[getEmployees] Fetching employees", {
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+  });
+
   let employees: Employee[];
+  let storageKey: string;
   
   if (ctx.tenantId) {
-    employees = await kv.getJSON<Employee[]>(`tenant:${ctx.tenantId}:users`) || [];
+    storageKey = `tenant:${ctx.tenantId}:users`;
+    employees = await kv.getJSON<Employee[]>(storageKey) || [];
+    console.log(`[getEmployees] Loaded ${employees.length} employees from ${storageKey}`);
   } else {
-    employees = await kv.getJSON<Employee[]>("employees") || [];
+    storageKey = "employees";
+    employees = await kv.getJSON<Employee[]>(storageKey) || [];
+    console.log(`[getEmployees] Loaded ${employees.length} employees from ${storageKey}`);
   }
   
-  const employeesWithoutPasswords = employees.map(({ passwordHash, ...employee }) => employee);
+  const employeesWithoutPasswords = employees.map(({ passwordHash, ...employee }) => ({
+    ...employee,
+    permissions: employee.permissions || {
+      canManageUsers: false,
+      canViewReports: true,
+      canHandleRequests: true,
+      canCreateInvoices: false,
+      canViewCustomerInfo: true,
+      canDeleteData: false,
+    },
+  }));
   
+  console.log(`[getEmployees] Returning ${employeesWithoutPasswords.length} employees`);
   return employeesWithoutPasswords;
 });

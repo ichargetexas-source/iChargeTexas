@@ -2,8 +2,9 @@ const storage = new Map<string, string>();
 
 export const kv = {
   async get(key: string): Promise<string | null> {
-    console.log(`[Storage] GET ${key}`);
-    return storage.get(key) || null;
+    const value = storage.get(key) || null;
+    console.log(`[Storage] GET ${key}: ${value ? 'found' : 'not found'}`);
+    return value;
   },
 
   async set(key: string, value: string): Promise<void> {
@@ -35,9 +36,14 @@ export const kv = {
 
   async getJSON<T>(key: string): Promise<T | null> {
     const value = await this.get(key);
-    if (!value) return null;
+    if (!value) {
+      console.log(`[Storage] getJSON ${key}: no data found`);
+      return null;
+    }
     try {
-      return JSON.parse(value) as T;
+      const parsed = JSON.parse(value) as T;
+      console.log(`[Storage] getJSON ${key}: successfully parsed`);
+      return parsed;
     } catch (error) {
       console.error(`[Storage] Error parsing JSON for key ${key}:`, error);
       return null;
@@ -45,7 +51,9 @@ export const kv = {
   },
 
   async setJSON<T>(key: string, value: T): Promise<void> {
-    await this.set(key, JSON.stringify(value));
+    const jsonString = JSON.stringify(value, null, 2);
+    console.log(`[Storage] setJSON ${key}: storing ${jsonString.length} characters`);
+    await this.set(key, jsonString);
   },
 
   tenant(tenantId: string) {
