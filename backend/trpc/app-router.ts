@@ -18,43 +18,54 @@ import { calculateDistanceProcedure } from "./routes/requests/calculate-distance
 import { getMileageLogsProcedure } from "./routes/requests/get-mileage-logs/route";
 import { calculateRoundTripProcedure } from "./routes/requests/calculate-round-trip/route";
 
-console.log("Loading app-router module");
-console.log("[Router] getEmployeesProcedure type:", typeof getEmployeesProcedure);
-console.log("[Router] getCredentialLogsProcedure type:", typeof getCredentialLogsProcedure);
-
-export const appRouter = createTRPCRouter({
-  example: createTRPCRouter({
-    hi: hiRoute,
-  }),
-  stripe: createTRPCRouter({
-    createInvoice: createInvoiceProcedure,
-  }),
-  auth: createTRPCRouter({
-    login: loginProcedure,
-    getAuditLogs: getAuditLogsProcedure,
-    createEmployee: createUserProcedure,
-    getCredentialLogs: getCredentialLogsProcedure,
-    getEmployees: getEmployeesProcedure,
-    updateEmployee: updateEmployeeProcedure,
-  }),
-  tenant: createTRPCRouter({
-    register: registerTenantProcedure,
-    getTenant: getTenantProcedure,
-    listTenants: listTenantsProcedure,
-    updateTenant: updateTenantProcedure,
-  }),
-  billing: createTRPCRouter({
-    createSubscription: createSubscriptionProcedure,
-    cancelSubscription: cancelSubscriptionProcedure,
-    getUsage: getTenantUsageProcedure,
-  }),
-  requests: createTRPCRouter({
-    calculateDistance: calculateDistanceProcedure,
-    getMileageLogs: getMileageLogsProcedure,
-    calculateRoundTrip: calculateRoundTripProcedure,
-  }),
+const exampleRouter = createTRPCRouter({
+  hi: hiRoute,
 });
 
-console.log("[Router] appRouter.auth keys:", Object.keys((appRouter as any)._def.procedures.auth._def.procedures));
+const stripeRouter = createTRPCRouter({
+  createInvoice: createInvoiceProcedure,
+});
+
+const authRouter = createTRPCRouter({
+  login: loginProcedure,
+  getAuditLogs: getAuditLogsProcedure,
+  createEmployee: createUserProcedure,
+  getCredentialLogs: getCredentialLogsProcedure,
+  getEmployees: getEmployeesProcedure,
+  updateEmployee: updateEmployeeProcedure,
+});
+
+const tenantRouter = createTRPCRouter({
+  register: registerTenantProcedure,
+  getTenant: getTenantProcedure,
+  listTenants: listTenantsProcedure,
+  updateTenant: updateTenantProcedure,
+});
+
+const billingRouter = createTRPCRouter({
+  createSubscription: createSubscriptionProcedure,
+  cancelSubscription: cancelSubscriptionProcedure,
+  getUsage: getTenantUsageProcedure,
+});
+
+const requestsRouter = createTRPCRouter({
+  calculateDistance: calculateDistanceProcedure,
+  getMileageLogs: getMileageLogsProcedure,
+  calculateRoundTrip: calculateRoundTripProcedure,
+});
+
+console.log("[Router] example procedures:", Object.keys(exampleRouter._def.procedures));
+console.log("[Router] auth procedures:", Object.keys(authRouter._def.procedures));
+
+export const appRouter = createTRPCRouter({
+  example: exampleRouter,
+  stripe: stripeRouter,
+  auth: authRouter,
+  tenant: tenantRouter,
+  billing: billingRouter,
+  requests: requestsRouter,
+});
+
+console.log("[Router] namespaces registered:", Object.keys(appRouter._def.procedures));
 
 export type AppRouter = typeof appRouter;
