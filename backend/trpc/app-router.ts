@@ -20,7 +20,6 @@ import { calculateRoundTripProcedure } from "./routes/requests/calculate-round-t
 
 console.log("Loading app-router module");
 
-
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute,
@@ -31,7 +30,7 @@ export const appRouter = createTRPCRouter({
   auth: createTRPCRouter({
     login: loginProcedure,
     getAuditLogs: getAuditLogsProcedure,
-    // Procedure to create new employees/workers
+    // Use createUserProcedure but expose it as createEmployee to match client calls
     createEmployee: createUserProcedure,
     getCredentialLogs: getCredentialLogsProcedure,
     getEmployees: getEmployeesProcedure,
