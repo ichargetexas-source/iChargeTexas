@@ -14,6 +14,7 @@ import { cancelSubscriptionProcedure } from "./routes/billing/cancel-subscriptio
 import { getTenantUsageProcedure } from "./routes/billing/get-usage/route";
 import { calculateDistanceProcedure } from "./routes/requests/calculate-distance/route";
 import { getMileageLogsProcedure } from "./routes/requests/get-mileage-logs/route";
+import { calculateRoundTripProcedure } from "./routes/requests/calculate-round-trip/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -42,6 +43,7 @@ export const appRouter = createTRPCRouter({
   requests: createTRPCRouter({
     calculateDistance: calculateDistanceProcedure,
     getMileageLogs: getMileageLogsProcedure,
+    calculateRoundTrip: calculateRoundTripProcedure,
   }),
 });
 
