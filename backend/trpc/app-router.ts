@@ -19,6 +19,8 @@ import { getMileageLogsProcedure } from "./routes/requests/get-mileage-logs/rout
 import { calculateRoundTripProcedure } from "./routes/requests/calculate-round-trip/route";
 
 console.log("Loading app-router module");
+console.log("[Router] getEmployeesProcedure type:", typeof getEmployeesProcedure);
+console.log("[Router] getCredentialLogsProcedure type:", typeof getCredentialLogsProcedure);
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -52,5 +54,7 @@ export const appRouter = createTRPCRouter({
     calculateRoundTrip: calculateRoundTripProcedure,
   }),
 });
+
+console.log("[Router] appRouter.auth keys:", Object.keys((appRouter as any)._def.procedures.auth._def.procedures));
 
 export type AppRouter = typeof appRouter;

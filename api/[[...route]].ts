@@ -1,14 +1,17 @@
 import app from "../backend/hono";
 
+console.log("[API Route] Loading edge function");
+
 export const config = {
   runtime: "edge",
 };
 
-export default app.fetch;
+const handler = app.fetch;
 
-export const GET = app.fetch;
-export const POST = app.fetch;
-export const PUT = app.fetch;
-export const DELETE = app.fetch;
-export const PATCH = app.fetch;
-export const OPTIONS = app.fetch;
+export default handler;
+export const GET = handler;
+export const POST = handler;
+export const PUT = handler;
+export const DELETE = handler;
+export const PATCH = handler;
+export const OPTIONS = handler;

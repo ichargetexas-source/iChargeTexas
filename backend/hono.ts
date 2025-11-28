@@ -129,6 +129,8 @@ app.use(
   })
 );
 
+console.log("[Hono] tRPC middleware configured");
+
 app.get("/", (c) => {
   return c.json({ 
     status: "ok", 
