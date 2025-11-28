@@ -1,5 +1,5 @@
 import { createTRPCReact } from "@trpc/react-query";
-import { httpLink, loggerLink } from "@trpc/client";
+import { createTRPCClient, httpLink, loggerLink } from "@trpc/client";
 import type { AppRouter } from "@/backend/trpc/app-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import superjson from "superjson";
@@ -23,7 +23,7 @@ const getBaseUrl = () => {
   return "http://localhost:3000";
 };
 
-export const trpcClient = trpc.createClient({
+export const trpcClient = createTRPCClient<AppRouter>({
   links: [
     loggerLink({
       enabled: (opts) =>
@@ -36,19 +36,23 @@ export const trpcClient = trpc.createClient({
       async headers() {
         const headers: Record<string, string> = {};
         
-        const storedUser = await AsyncStorage.getItem("@current_user");
-        if (storedUser && storedUser !== "null" && storedUser !== "undefined") {
-          try {
-            const user = JSON.parse(storedUser);
-            headers.authorization = `Bearer ${user.id}`;
-          } catch (e) {
-            console.error("[tRPC] Error parsing stored user:", e);
+        try {
+          const storedUser = await AsyncStorage.getItem("@current_user");
+          if (storedUser && storedUser !== "null" && storedUser !== "undefined") {
+            try {
+              const user = JSON.parse(storedUser);
+              headers.authorization = `Bearer ${user.id}`;
+            } catch (e) {
+              console.error("[tRPC] Error parsing stored user:", e);
+            }
           }
-        }
-        
-        const tenantId = await AsyncStorage.getItem("@current_tenant_id");
-        if (tenantId && tenantId !== "null" && tenantId !== "undefined") {
-          headers["x-tenant-id"] = tenantId;
+          
+          const tenantId = await AsyncStorage.getItem("@current_tenant_id");
+          if (tenantId && tenantId !== "null" && tenantId !== "undefined") {
+            headers["x-tenant-id"] = tenantId;
+          }
+        } catch (e) {
+          console.log("[tRPC] AsyncStorage not available, skipping headers");
         }
         
         return headers;
