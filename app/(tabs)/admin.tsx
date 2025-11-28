@@ -1750,6 +1750,18 @@ export default function AdminScreen() {
                 <RouteIcon color={"#FF5722"} size={24} />
                 <Text style={styles.quickActionLabel}>Mileage Logs</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => {
+                  if (Platform.OS !== "web") {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  router.push('/test-mileage');
+                }}
+              >
+                <Navigation color={"#8B5CF6"} size={24} />
+                <Text style={styles.quickActionLabel}>Test Mileage</Text>
+              </TouchableOpacity>
             </View>
           </View>
 

@@ -17,6 +17,9 @@ import { getTenantUsageProcedure } from "./routes/billing/get-usage/route";
 import { calculateDistanceProcedure } from "./routes/requests/calculate-distance/route";
 import { getMileageLogsProcedure } from "./routes/requests/get-mileage-logs/route";
 import { calculateRoundTripProcedure } from "./routes/requests/calculate-round-trip/route";
+import { createTestJobProcedure } from "./routes/requests/create-test-job/route";
+import { acceptJobProcedure } from "./routes/requests/accept-job/route";
+import { postMileageLogProcedure } from "./routes/requests/post-mileage-log/route";
 
 const exampleRouter = createTRPCRouter({
   hi: hiRoute,
@@ -52,6 +55,9 @@ const requestsRouter = createTRPCRouter({
   calculateDistance: calculateDistanceProcedure,
   getMileageLogs: getMileageLogsProcedure,
   calculateRoundTrip: calculateRoundTripProcedure,
+  createTestJob: createTestJobProcedure,
+  acceptJob: acceptJobProcedure,
+  postMileageLog: postMileageLogProcedure,
 });
 
 console.log("[Router] example procedures:", Object.keys(exampleRouter._def.procedures));
