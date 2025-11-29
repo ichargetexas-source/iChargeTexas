@@ -7,7 +7,14 @@ import { kv } from "./storage";
 
 const app = new Hono();
 
-app.use("*", cors());
+app.use("*", cors({
+  origin: "*",
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowHeaders: ["Content-Type", "Authorization", "X-Tenant-Id"],
+  exposeHeaders: ["Content-Length"],
+  maxAge: 86400,
+  credentials: true,
+}));
 
 // Log all incoming requests for debugging
 app.use("*", async (c, next) => {

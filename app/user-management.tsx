@@ -65,9 +65,10 @@ export default function UserManagementScreen() {
     onError: (error) => {
       console.error('[UserManagement] Create mutation error:', error);
       console.error('[UserManagement] Error message:', error.message);
+      console.error('[UserManagement] Full error:', JSON.stringify(error, null, 2));
     },
-    retry: 2,
-    retryDelay: 1000,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
   const updateEmployeeMutation = trpc.auth.updateEmployee.useMutation({
     onSuccess: async () => {
