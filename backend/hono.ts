@@ -25,7 +25,9 @@ app.use("*", async (c, next) => {
 
 // Seed data function
 async function seedData() {
+  console.log("[Seed] Starting seed process...");
   const employees = await kv.getJSON<any[]>("employees") || [];
+  console.log(`[Seed] Current employees count: ${employees.length}`);
   
   // Seed super admin
   if (!employees.some((e) => e.username === "admin")) {
@@ -34,7 +36,8 @@ async function seedData() {
       id: "super_admin_001",
       employeeId: "000001",
       username: "admin",
-      passwordHash: "hashed_admin123", // In real app, hash this
+      password: "admin123",
+      passwordHash: "hashed_admin123",
       role: "super_admin",
       fullName: "System Admin",
       email: "admin@rork.app",
@@ -74,6 +77,7 @@ async function seedData() {
       id: `emp_${Date.now()}_elena`,
       employeeId: elenaEmployeeId,
       username: "elena",
+      password: "bacon",
       passwordHash: "hashed_bacon",
       role: "worker",
       fullName: "elena",
@@ -107,6 +111,8 @@ async function seedData() {
   }
 
   await kv.setJSON("employees", employees);
+  console.log(`[Seed] Seed complete. Total employees: ${employees.length}`);
+  console.log("[Seed] Employee usernames:", employees.map(e => e.username));
 }
 
 // Run seed on first request (lazy init)

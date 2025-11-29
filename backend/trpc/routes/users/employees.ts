@@ -172,6 +172,7 @@ export const createEmployeeProcedure = protectedProcedure
       employeeId: employeeId,
       username: input.username,
       password: input.password,
+      passwordHash: `hashed_${input.password}`,
       role: input.role,
       fullName: input.fullName,
       email: input.email,
@@ -180,7 +181,7 @@ export const createEmployeeProcedure = protectedProcedure
       createdAt: new Date().toISOString(),
       createdBy: ctx.userId,
       permissions: input.permissions,
-    };
+    } as any;
 
     existingUsers.push(newEmployee);
     await kv.setJSON(storageKey, existingUsers);

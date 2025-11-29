@@ -23,6 +23,14 @@ import { createTestJobProcedure } from "./routes/requests/create-test-job/route"
 import { acceptJobProcedure } from "./routes/requests/accept-job/route";
 import { postMileageLogProcedure } from "./routes/requests/post-mileage-log/route";
 
+console.log("[Router] Building app router...");
+console.log("[Router] Loaded procedures:", {
+  getEmployees: !!getEmployeesProcedure,
+  getCredentialLogs: !!getCredentialLogsProcedure,
+  createEmployee: !!createEmployeeProcedure,
+  updateEmployee: !!updateEmployeeProcedure,
+});
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute,
@@ -60,5 +68,6 @@ export const appRouter = createTRPCRouter({
 });
 
 console.log("[Router] App router initialized successfully");
+console.log("[Router] Auth router procedures:", Object.keys((appRouter._def as any).procedures?.auth?._def?.procedures || {}));
 
 export type AppRouter = typeof appRouter;
