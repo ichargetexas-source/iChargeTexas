@@ -157,8 +157,20 @@ for (const [key, value] of Object.entries(procedures)) {
     const router = value as any;
     if (router._def && router._def.procedures) {
       console.log(`[Hono] Router '${key}' has procedures:`, Object.keys(router._def.procedures));
+      
+      for (const procKey of Object.keys(router._def.procedures)) {
+        const proc = router._def.procedures[procKey];
+        console.log(`[Hono]   - ${key}.${procKey}: type=${proc?._def?.type}, exists=${!!proc}`);
+      }
     }
   }
+}
+
+console.log("[Hono] Checking specific auth procedures:");
+if (procedures.auth && procedures.auth._def && procedures.auth._def.procedures) {
+  console.log("[Hono] auth.getEmployees exists:", !!procedures.auth._def.procedures.getEmployees);
+  console.log("[Hono] auth.getCredentialLogs exists:", !!procedures.auth._def.procedures.getCredentialLogs);
+  console.log("[Hono] auth.createEmployee exists:", !!procedures.auth._def.procedures.createEmployee);
 }
 
 // Handle tRPC requests at /api/trpc with both POST and GET
@@ -190,7 +202,13 @@ app.get("/", (c) => {
     status: "ok", 
     message: "Service Management API is running",
     timestamp: new Date().toISOString(),
-    version: "1.0.0"
+    version: "1.0.1",
+    build: "2025-01-29-fix",
+    routes: {
+      auth: Object.keys((appRouter._def.procedures as any).auth?._def?.procedures || {}),
+      example: Object.keys((appRouter._def.procedures as any).example?._def?.procedures || {}),
+      stripe: Object.keys((appRouter._def.procedures as any).stripe?._def?.procedures || {}),
+    }
   });
 });
 
