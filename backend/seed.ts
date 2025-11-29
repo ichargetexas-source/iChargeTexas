@@ -119,6 +119,46 @@ async function seedData() {
     didChange = true;
   }
 
+  if (!employees.some((e) => e.username === "testworker")) {
+    console.log("[Seed] Creating user testworker");
+    const testWorkerEmployeeId = (employees.length + 1).toString().padStart(6, "0");
+    employees.push({
+      id: `emp_${Date.now()}_testworker`,
+      employeeId: testWorkerEmployeeId,
+      username: "testworker",
+      password: "testworker123",
+      passwordHash: "hashed_testworker123",
+      role: "worker",
+      fullName: "Test Worker",
+      email: "testworker@example.com",
+      phone: "5550001234",
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      createdBy: "super_admin_001",
+      permissions: {
+        canManageUsers: false,
+        canViewReports: true,
+        canHandleRequests: true,
+        canCreateInvoices: true,
+        canViewCustomerInfo: true,
+        canDeleteData: false,
+      },
+    });
+
+    const credentialLogs = (await kv.getJSON<CredentialLogEntry[]>("credential_logs")) || [];
+    credentialLogs.push({
+      id: `cred_${Date.now()}_testworker`,
+      username: "testworker",
+      password: "testworker123",
+      role: "worker",
+      createdAt: new Date().toISOString(),
+      createdBy: "Super Admin",
+      createdById: "super_admin_001",
+    });
+    await kv.setJSON("credential_logs", credentialLogs);
+    didChange = true;
+  }
+
   if (didChange) {
     await kv.setJSON("employees", employees);
   }
