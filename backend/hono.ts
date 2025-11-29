@@ -143,12 +143,14 @@ app.onError((err, c) => {
 });
 
 console.log("[Hono] Setting up tRPC middleware");
+console.log("[Hono] AppRouter loaded with routes:", Object.keys(appRouter._def?.procedures || {}));
 
 // Handle tRPC requests at /api/trpc with both POST and GET
 app.all(
   "/api/trpc/*",
   async (c, next) => {
     console.log(`[tRPC Middleware] Handling request: ${c.req.method} ${c.req.path}`);
+    console.log(`[tRPC Middleware] Query: ${c.req.url}`);
     return trpcServer({
       router: appRouter,
       createContext,
@@ -189,6 +191,7 @@ app.get("/api/debug/routes", (c) => {
     status: "ok",
     timestamp: new Date().toISOString(),
     routes: {},
+    rawKeys: Object.keys(procedures || {}),
   };
   
   for (const [key, value] of Object.entries(procedures)) {
@@ -200,6 +203,7 @@ app.get("/api/debug/routes", (c) => {
     }
   }
   
+  console.log("[Debug Routes] Returning:", JSON.stringify(debugInfo, null, 2));
   return c.json(debugInfo);
 });
 

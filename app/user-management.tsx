@@ -62,13 +62,17 @@ export default function UserManagementScreen() {
       await credentialsQuery.refetch();
       console.log('[UserManagement] Data refetched successfully');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('[UserManagement] Create mutation error:', error);
       console.error('[UserManagement] Error message:', error.message);
-      console.error('[UserManagement] Full error:', JSON.stringify(error, null, 2));
+      console.error('[UserManagement] Error code:', error.data?.code);
+      console.error('[UserManagement] HTTP status:', error.data?.httpStatus);
+      if (error.message?.includes('404') || error.data?.httpStatus === 404) {
+        console.error('[UserManagement] 404 Error - The API endpoint was not found. This may indicate a deployment issue.');
+        console.error('[UserManagement] Try visiting /api/debug/routes to see available routes');
+      }
     },
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: false,
   });
   const updateEmployeeMutation = trpc.auth.updateEmployee.useMutation({
     onSuccess: async () => {
