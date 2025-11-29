@@ -1,9 +1,51 @@
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import app from "../backend/hono";
+import { appRouter } from "../backend/trpc/app-router";
+import { createContext } from "../backend/trpc/create-context";
+import { ensureSeedReady } from "../backend/seed";
 
 console.log("[API Route] Loading edge function");
 
 export const config = {
   runtime: "edge",
+};
+
+const CORS_HEADERS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Tenant-Id",
+  "Access-Control-Max-Age": "86400",
+};
+
+const withCors = (response: Response) => {
+  const headers = new Headers(response.headers);
+  Object.entries(CORS_HEADERS).forEach(([key, value]) => {
+    headers.set(key, value);
+  });
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+};
+
+const handleTrpcRequest = async (req: Request) => {
+  console.log(`[API Route Handler] Direct tRPC handling for ${req.url}`);
+  await ensureSeedReady();
+  const response = await fetchRequestHandler({
+  endpoint: "/api/trpc",
+    req,
+    router: appRouter,
+    createContext,
+    onError({ path, error }) {
+      console.error("[API Route Handler] tRPC error", {
+        path,
+        message: error.message,
+        code: error.code,
+      });
+    },
+  });
+  return withCors(response);
 };
 
 const handler = async (req: Request) => {
@@ -15,45 +57,18 @@ const handler = async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Tenant-Id",
-        "Access-Control-Max-Age": "86400",
-      },
+      headers: CORS_HEADERS,
     });
+  }
+
+  if (url.pathname.startsWith("/api/trpc")) {
+    return handleTrpcRequest(req);
   }
   
   try {
     const response = await app.fetch(req);
     console.log(`[API Route Handler] Response status: ${response.status}`);
-    
-    if (response.status === 404) {
-      const text = await response.text();
-      console.error(`[API Route Handler] 404 Response body: ${text}`);
-      
-      return new Response(text, {
-        status: 404,
-        statusText: response.statusText,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Tenant-Id",
-        },
-      });
-    }
-    
-    const newHeaders = new Headers(response.headers);
-    newHeaders.set("Access-Control-Allow-Origin", "*");
-    newHeaders.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-    newHeaders.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Tenant-Id");
-    
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: newHeaders,
-    });
+    return withCors(response);
   } catch (error) {
     console.error("[API Route Handler] Error:", error);
     console.error("[API Route Handler] Error stack:", error instanceof Error ? error.stack : 'N/A');
@@ -61,7 +76,7 @@ const handler = async (req: Request) => {
       status: 500,
       headers: { 
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
+        ...CORS_HEADERS,
       },
     });
   }
