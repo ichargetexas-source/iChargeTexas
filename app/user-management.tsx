@@ -64,7 +64,10 @@ export default function UserManagementScreen() {
     },
     onError: (error) => {
       console.error('[UserManagement] Create mutation error:', error);
+      console.error('[UserManagement] Error message:', error.message);
     },
+    retry: 2,
+    retryDelay: 1000,
   });
   const updateEmployeeMutation = trpc.auth.updateEmployee.useMutation({
     onSuccess: async () => {
@@ -248,7 +251,16 @@ export default function UserManagementScreen() {
       }
     } catch (error: any) {
       console.error("[UserManagement] Error:", error);
-      const errorMessage = error?.message || "An unexpected error occurred";
+      let errorMessage = "An unexpected error occurred";
+      
+      if (error?.message?.includes('Failed to fetch') || error?.message?.includes('timeout')) {
+        errorMessage = "Unable to connect to server. Please check your connection and try again.";
+      } else if (error?.message?.includes('UNAUTHORIZED')) {
+        errorMessage = "You need to log in to perform this action.";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       Alert.alert("Error", errorMessage);
     } finally {
       setIsLoading(false);

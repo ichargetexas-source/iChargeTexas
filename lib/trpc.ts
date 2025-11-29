@@ -57,41 +57,61 @@ const trpcLinks = [
       return headers;
     },
     async fetch(url, options) {
-      const response = await fetch(url, options);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
       
-      if (!response.ok) {
-        const text = await response.text();
-        console.error(`[tRPC Client] HTTP Error ${response.status}`);
-        console.error(`[tRPC Client] URL: ${url}`);
-        console.error(`[tRPC Client] Body: ${text.substring(0, 500)}`);
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal,
+        });
         
-        let errorMessage = `HTTP Error ${response.status}`;
-        try {
-          const jsonError = JSON.parse(text);
-          errorMessage = jsonError.error?.message || jsonError.message || errorMessage;
-        } catch {
-          errorMessage = text || errorMessage;
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const text = await response.text();
+          console.error(`[tRPC Client] HTTP Error ${response.status}`);
+          console.error(`[tRPC Client] URL: ${url}`);
+          console.error(`[tRPC Client] Body: ${text.substring(0, 500)}`);
+          
+          let errorMessage = `HTTP Error ${response.status}`;
+          try {
+            const jsonError = JSON.parse(text);
+            errorMessage = jsonError.error?.message || jsonError.message || errorMessage;
+          } catch {
+            errorMessage = text || errorMessage;
+          }
+          
+          const errorResponse = new Response(
+            JSON.stringify({
+              error: {
+                message: errorMessage,
+                code: "HTTP_ERROR",
+                data: {
+                  httpStatus: response.status,
+                },
+              },
+            }),
+            {
+              status: response.status,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+          return errorResponse;
         }
         
-        const errorResponse = new Response(
-          JSON.stringify({
-            error: {
-              message: errorMessage,
-              code: "HTTP_ERROR",
-              data: {
-                httpStatus: response.status,
-              },
-            },
-          }),
-          {
-            status: response.status,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-        return errorResponse;
+        return response;
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        
+        if (error.name === 'AbortError') {
+          console.error('[tRPC Client] Request timeout');
+          throw new Error('Request timeout - server took too long to respond');
+        }
+        
+        console.error('[tRPC Client] Fetch error:', error.message);
+        throw error;
       }
-      
-      return response;
     },
   }),
 ];
