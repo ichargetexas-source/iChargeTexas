@@ -204,7 +204,12 @@ export default function UserManagementScreen() {
 
     try {
       if (modalType === "create") {
-        const roleForBackend = formData.role === "super_admin" ? "admin" : (formData.role as "admin" | "worker");
+        const roleForBackend: "admin" | "worker" | "employee" | "super_admin" = 
+          formData.role === "super_admin" ? "admin" : 
+          formData.role === "admin" ? "admin" : "worker";
+        
+        console.log('[UserManagement] Creating user with role:', roleForBackend, 'original:', formData.role);
+        
         await createEmployeeMutation.mutateAsync({
           username: formData.username,
           password: formData.password,
